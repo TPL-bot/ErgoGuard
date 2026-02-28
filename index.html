@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════════╗
+  ║         ErgoGuard International  –  Web Edition                     ║
+  ║  Privacy-First · AI Posture Analytics · ESG · Multilingual          ║
+  ╚══════════════════════════════════════════════════════════════════════╝
+
+  HOW TO RUN:
+    ① Open a terminal in this folder and run:
+         python -m http.server 8080
+    ② Visit  http://localhost:8080  in Chrome, Edge, or Safari.
+
+  Why a local server?  Browsers block camera access on file:// URLs.
+  The server does NOT upload anything – all AI runs in your browser (edge computing).
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ErgoGuard International</title>
+
+  <!-- Tailwind CSS (CDN – no build step needed) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js for donut report -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- MediaPipe Pose (classic CDN bundle) -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"   crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"                   crossorigin="anonymous"></script>
+
+  <style>
+    /* ── Custom properties ────────────────────────────────────────────── */
+    :root {
+      --bg:         #F4F9F4;
+      --card:       #FFFFFF;
+      --accent:     #2C5E3B;
+      --accent2:    #4A8C5C;
+      --btn:        #4CAF50;
+      --btn-hov:    #45A049;
+      --muted:      #555555;
+      --sep:        #D5E8D4;
+      --trough:     #C8E6C9;
+      --danger:     #E74C3C;
+      --amber:      #F39C12;
+    }
+
+    * { box-sizing: border-box; }
+    body { background: var(--bg); font-family: "Segoe UI", Helvetica, Arial, sans-serif; color: #333; }
+
+    /* ── Accent strip ─────────────────────────────────────────────────── */
+    .accent-strip { height: 4px; background: var(--btn); }
+
+    /* ── Primary green button ─────────────────────────────────────────── */
+    .btn-primary {
+      background: var(--btn); color: #fff;
+      border: none; border-radius: 8px;
+      padding: 12px 28px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background .18s;
+    }
+    .btn-primary:hover { background: var(--btn-hov); }
+
+    /* ── Outline button ───────────────────────────────────────────────── */
+    .btn-outline {
+      background: transparent; color: var(--accent);
+      border: 2px solid var(--accent2); border-radius: 8px;
+      padding: 10px 24px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background .18s;
+    }
+    .btn-outline:hover { background: var(--sep); }
+
+    /* ── Danger button ────────────────────────────────────────────────── */
+    .btn-danger {
+      background: var(--danger); color: #fff;
+      border: none; border-radius: 8px;
+      padding: 10px 20px; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: opacity .18s;
+    }
+    .btn-danger:hover { opacity: .88; }
+
+    /* ── Form controls ────────────────────────────────────────────────── */
+    .form-label { font-size: 13px; font-weight: 700; color: #333; margin-bottom: 6px; display: block; }
+    input[type="text"], select {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid var(--sep); border-radius: 8px;
+      background: #fff; font-size: 14px; color: #333;
+      outline: none; transition: border-color .18s;
+    }
+    input[type="text"]:focus, select:focus { border-color: var(--btn); }
+    input[type="range"] { accent-color: var(--btn); width: 100%; }
+
+    /* ── Toggle switch ────────────────────────────────────────────────── */
+    .toggle { position:relative; display:inline-block; width:46px; height:24px; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .slider-tog {
+      position:absolute; inset:0; background:#ccc;
+      border-radius:24px; cursor:pointer; transition:.3s;
+    }
+    .slider-tog:before {
+      content:""; position:absolute;
+      height:18px; width:18px; left:3px; bottom:3px;
+      background:#fff; border-radius:50%; transition:.3s;
+    }
+    .toggle input:checked + .slider-tog { background:var(--btn); }
+    .toggle input:checked + .slider-tog:before { transform:translateX(22px); }
+
+    /* ── Card ─────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--card); border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      padding: 28px 32px;
+    }
+
+    /* ── Separator ────────────────────────────────────────────────────── */
+    .sep { height: 1px; background: var(--sep); margin: 16px 0; }
+
+    /* ── Detection canvas wrapper ─────────────────────────────────────── */
+    #wrap-detection {
+      position: relative; display: inline-block;
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,.35);
+    }
+    #canvas-pose { display: block; background: #000; }
+    video { display: none; } /* always hidden – privacy mode */
+
+    /* ── HUD overlay on canvas ────────────────────────────────────────── */
+    #hud {
+      position: absolute; top: 0; left: 0; right: 0;
+      padding: 12px 16px;
+      background: linear-gradient(to bottom, rgba(0,0,0,.65) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* ── Bad-posture red flash ────────────────────────────────────────── */
+    #bad-overlay {
+      position: absolute; inset: 0;
+      border: 6px solid var(--danger);
+      border-radius: 12px;
+      pointer-events: none;
+      opacity: 0; transition: opacity .3s;
+    }
+    #bad-overlay.visible { opacity: 1; }
+
+    /* ── Break reminder banner ────────────────────────────────────────── */
+    #break-banner {
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,.82); color: #4fc26b;
+      padding: 10px 22px; border-radius: 8px;
+      font-weight: 700; font-size: 14px; white-space: nowrap;
+      pointer-events: none; display: none;
+    }
+
+    /* ── Reminder alert banner ────────────────────────────────────────── */
+    #reminder-alert {
+      position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,.82); color: #fff;
+      padding: 10px 22px; border-radius: 8px;
+      font-weight: 700; font-size: 14px; white-space: nowrap;
+      pointer-events: none; display: none;
+      border-left: 5px solid var(--btn);
+    }
+
+    /* ── Grade badge ──────────────────────────────────────────────────── */
+    .grade-A { color: #2ECC71; }
+    .grade-B { color: #F39C12; }
+    .grade-F { color: #E74C3C; }
+
+    /* ── Color swatch ─────────────────────────────────────────────────── */
+    .cat-swatch {
+      display: inline-block; width: 14px; height: 14px;
+      border-radius: 3px; margin-right: 6px; vertical-align: middle;
+    }
+
+    /* ── Modal backdrop ───────────────────────────────────────────────── */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); backdrop-filter: blur(2px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999;
+    }
+
+    /* ── Reminder list item ───────────────────────────────────────────── */
+    .rem-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 8px;
+      background: var(--bg); margin-bottom: 8px;
+      border-left: 5px solid var(--btn);
+      font-size: 14px;
+    }
+    .rem-row.done { opacity: .5; text-decoration: line-through; }
+
+    /* ── Stats table ──────────────────────────────────────────────────── */
+    .stat-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--sep); font-size: 14px; }
+    .stat-val { font-weight: 700; color: var(--accent); }
+
+    /* Screen hide helper */
+    .hidden { display: none !important; }
+
+    /* Scrollbar thin */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: var(--trough); border-radius: 3px; }
+
+    @keyframes pulse-border {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .4; }
+    }
+    #bad-overlay.pulsing { animation: pulse-border 1s infinite; }
+  </style>
+
+  <script>
+    // ── Tailwind config ──────────────────────────────────────────────────
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            eco:    { DEFAULT: '#4CAF50', dark: '#2C5E3B', light: '#C8E6C9' },
+            muted:  '#555555',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN 1 — LAUNCHER
+════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-launcher" class="flex flex-col items-center justify-center min-h-screen px-4 py-10">
+
+  <div class="w-full max-w-lg">
+    <!-- Header card -->
+    <div class="card mb-6 overflow-hidden p-0">
+      <div class="accent-strip"></div>
+      <div class="p-7">
+        <div class="flex items-center gap-3 mb-1">
+          <span class="text-3xl">🌿</span>
+          <h1 id="lbl-title" class="text-2xl font-extrabold text-[var(--accent)]">ErgoGuard International</h1>
+        </div>
+        <p id="lbl-subtitle" class="text-sm text-[var(--muted)] ml-12">AI Posture &amp; Wellness Guardian</p>
+      </div>
+    </div>
+
+    <!-- Form card -->
+    <div class="card space-y-5">
+
+      <!-- Language -->
+      <div>
+        <label id="lbl-lang" class="form-label">Language</label>
+        <select id="sel-lang" class="!w-auto min-w-[200px]" onchange="onLangChange()">
+          <option value="English">English</option>
+          <option value="繁體中文">繁體中文</option>
+          <option value="Español">Español</option>
+          <option value="日本語">日本語</option>
+          <option value="한국어">한국어</option>
+          <option value="Français">Français</option>
+          <option value="Deutsch">Deutsch</option>
+          <option value="Русский">Русский</option>
+          <option value="Português">Português</option>
+          <option value="العربية">العربية</option>
+        </select>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- Interval slider -->
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <label id="lbl-interval" class="form-label mb-0">Reminder Interval (minutes)</label>
+          <span id="lbl-interval-val" class="text-sm font-bold text-[var(--accent)]">60 min</span>
+        </div>
+        <input type="range" id="slider-interval" min="15" max="120" value="60"
+               oninput="document.getElementById('lbl-interval-val').textContent=this.value+' '+(t.min_unit||'min')">
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- Privacy toggle -->
+      <div class="flex items-center justify-between">
+        <div>
+          <p id="lbl-privacy" class="text-[13px] font-bold text-[#333]">Privacy Mode — Stickman Only</p>
+          <p id="lbl-privacy-hint" class="text-xs text-[var(--muted)] mt-0.5">All AI runs locally — zero data leaves your device.</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="chk-privacy" checked>
+          <span class="slider-tog"></span>
+        </label>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- Buttons -->
+      <div class="flex flex-col sm:flex-row gap-3 pt-1">
+        <button id="btn-start" class="btn-primary flex-1 flex items-center justify-center gap-2" onclick="onStart()">
+          🟢 <span id="btn-start-text">Start ErgoGuard</span>
+        </button>
+        <button id="btn-reminders" class="btn-outline flex items-center justify-center gap-2" onclick="openRemindersModal()">
+          🔔 <span id="btn-reminders-text">Reminders</span>
+        </button>
+      </div>
+
+      <!-- Disclaimer -->
+      <p id="lbl-disclaimer" class="text-[11px] text-[var(--muted)] leading-relaxed">
+        Edge Computing: all AI runs locally — zero data leaves your device.
+        Privacy Mode visualises joint geometry only, never your appearance.
+      </p>
+    </div>
+
+    <p class="text-center text-xs text-[var(--muted)] mt-5">
+      v3.0 · MediaPipe + Chart.js · ErgoGuard International
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN 2 — DETECTION
+════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-detection" class="hidden flex flex-col items-center justify-between min-h-screen bg-gray-950 p-6 gap-4">
+
+  <!-- Top status bar -->
+  <div class="w-full max-w-3xl flex items-center justify-between">
+    <div>
+      <span id="det-status-dot" class="inline-block w-3 h-3 rounded-full bg-green-400 mr-2 align-middle"></span>
+      <span id="det-status" class="text-white font-bold text-sm">Good Posture</span>
+    </div>
+    <div class="text-green-400 text-sm font-mono">
+      ⏱ <span id="det-next">60:00</span>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div id="wrap-detection">
+    <video id="vid" playsinline></video>
+    <canvas id="canvas-pose" width="640" height="480"></canvas>
+    <div id="hud">
+      <div class="flex flex-wrap gap-4 text-xs text-white/80">
+        <span>🎯 <span id="hud-angle">—</span></span>
+        <span>🏋 <span id="hud-neck">—</span></span>
+        <span id="hud-privacy-tag" class="text-green-400 font-bold">🔒 PRIVACY MODE</span>
+      </div>
+    </div>
+    <div id="bad-overlay"></div>
+    <div id="break-banner">⏰ BREAK TIME!</div>
+    <div id="reminder-alert">🔔 —</div>
+  </div>
+
+  <!-- Stop button -->
+  <button class="btn-danger text-base px-8 py-3" onclick="onStop()">
+    ⏹ <span id="btn-stop-text">Stop &amp; Generate Report</span>
+  </button>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN 3 — REPORT
+════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-report" class="hidden flex flex-col items-center min-h-screen px-4 py-10">
+  <div class="w-full max-w-2xl space-y-6">
+
+    <!-- Header -->
+    <div class="card overflow-hidden p-0">
+      <div class="accent-strip"></div>
+      <div class="p-7 flex items-center gap-3">
+        <span class="text-3xl">📊</span>
+        <div>
+          <h2 id="rep-title" class="text-xl font-extrabold text-[var(--accent)]">ErgoGuard Session Report</h2>
+          <p id="rep-date" class="text-xs text-[var(--muted)] mt-0.5"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Donut chart + Grade -->
+    <div class="card flex flex-col sm:flex-row items-center gap-8">
+      <div class="relative" style="width:220px;height:220px;flex-shrink:0">
+        <canvas id="report-chart"></canvas>
+        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <span id="rep-grade" class="text-6xl font-black leading-none grade-A">A</span>
+          <span id="rep-grade-label" class="text-xs text-[var(--muted)] mt-1">Health Grade</span>
+        </div>
+      </div>
+      <div class="flex-1 w-full">
+        <p id="rep-feedback" class="text-sm font-semibold text-[var(--accent)] mb-4 leading-relaxed"></p>
+        <div id="rep-stats" class="space-y-1"></div>
+      </div>
+    </div>
+
+    <!-- ESG footer -->
+    <div class="card bg-[#F0FDF4] border border-[var(--sep)]">
+      <div class="flex flex-wrap gap-6 text-sm">
+        <div><span class="text-[var(--muted)]">🌱 Carbon Saved</span><br><strong id="rep-co2" class="text-[var(--accent)]">—</strong></div>
+        <div><span class="text-[var(--muted)]">💪 Avg Neck Load</span><br><strong id="rep-neck-avg" class="text-[var(--accent)]">—</strong></div>
+        <div><span class="text-[var(--muted)]">⏱ Session Time</span><br><strong id="rep-session-time" class="text-[var(--accent)]">—</strong></div>
+      </div>
+    </div>
+
+    <!-- Back button -->
+    <div class="flex gap-3">
+      <button class="btn-primary" onclick="showScreen('launcher')">🏠 <span id="btn-back-text">Back to Home</span></button>
+      <button class="btn-outline" onclick="downloadReport()">⬇ <span id="btn-download-text">Save as PNG</span></button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     REMINDERS MODAL
+════════════════════════════════════════════════════════════════════════ -->
+<div id="modal-reminders" class="modal-backdrop hidden" onclick="if(event.target===this)closeRemindersModal()">
+  <div class="card w-full max-w-md mx-4 overflow-hidden p-0 max-h-[90vh] flex flex-col">
+    <div class="accent-strip"></div>
+    <div class="p-6 overflow-y-auto flex-1">
+      <div class="flex items-center gap-2 mb-5">
+        <span class="text-2xl">🔔</span>
+        <h3 id="modal-title" class="text-lg font-extrabold text-[var(--accent)]">Daily Reminders</h3>
+      </div>
+
+      <!-- Add form -->
+      <div class="space-y-3 mb-5">
+        <div>
+          <label id="modal-name-lbl" class="form-label">Task name…</label>
+          <input type="text" id="rem-name" placeholder="e.g. Drink water" />
+        </div>
+        <div class="flex gap-3">
+          <div class="flex-1">
+            <label id="modal-time-lbl" class="form-label">Time (HH:MM)</label>
+            <div class="flex items-center gap-2">
+              <input type="number" id="rem-hour" min="0" max="23" value="9"
+                     class="w-16 text-center" style="width:60px">
+              <span class="font-bold text-[var(--accent)]">:</span>
+              <input type="number" id="rem-min" min="0" max="59" value="0"
+                     class="w-16 text-center" style="width:60px">
+            </div>
+          </div>
+          <div class="flex-1">
+            <label id="modal-cat-lbl" class="form-label">Category</label>
+            <select id="rem-cat">
+              <option value="Work">💼 Work</option>
+              <option value="Health" selected>💚 Health</option>
+              <option value="Break">☕ Break</option>
+              <option value="Urgent">🔴 Urgent</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary w-full mt-1" onclick="addReminder()"><span id="btn-add-rem-text">+ Add Reminder</span></button>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- List -->
+      <p id="rem-no-items" class="text-sm text-[var(--muted)] text-center py-4">No reminders yet — add one above.</p>
+      <div id="rem-list" class="space-y-2"></div>
+    </div>
+
+    <div class="border-t border-[var(--sep)] p-4 flex justify-end">
+      <button id="btn-modal-close" class="btn-outline" onclick="closeRemindersModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════════════════ -->
+<script>
+"use strict";
+
+// ── TRANSLATIONS ────────────────────────────────────────────────────────────
+const T = {
+  "English": {
+    title:"ErgoGuard International",subtitle:"AI Posture & Wellness Guardian",
+    language:"Language",interval:"Reminder Interval (minutes)",
+    privacy:"Privacy Mode — Stickman Only",start:"Start ErgoGuard",
+    good:"Good Posture ✓",bad:"Bad Posture ⚠",absent:"No Person Detected",
+    angle:"Neck Angle",neck_load:"Neck Load",
+    break_msg:"BREAK TIME! Opening your stretch video…",
+    quit_tip:"Click Stop to generate report",
+    report_title:"ErgoGuard Session Report",grade_label:"Health Grade",
+    carbon_label:"Carbon Saved (ESG)",neck_avg:"Avg Neck Load",
+    good_label:"Good Posture",bad_label:"Bad Posture",
+    grade_A_msg:"Excellent! Keep it up.",
+    grade_B_msg:"Average. Try to sit straight more often to protect your spine.",
+    grade_F_msg:"Danger! Bad posture for most of your session. Please stretch now!",
+    session_time:"Session Time",frames:"Frames",
+    good_pct_label:"Good Posture %",session_stats:"Session Statistics",
+    reminders:"Reminders",add_rem:"＋ Add Reminder",stop:"Stop & Generate Report",
+    back:"Back to Home",save_png:"Save as PNG",no_rem:"No reminders yet — add one above.",
+    cat_work:"Work",cat_health:"Health",cat_break:"Break",cat_urgent:"Urgent",
+    time_lbl:"Time (HH:MM)",cat_lbl:"Category",name_lbl:"Task name",
+    name_ph:"e.g. Drink water",modal_close:"Close",privacy_hint:"All AI runs locally \u2014 zero data leaves your device.",disclaimer:"Edge Computing: all AI runs locally \u2014 zero data leaves your device. Privacy Mode visualises joint geometry only, never your appearance.",min_unit:"min",
+  },
+  "繁體中文": {
+    title:"ErgoGuard 國際版",subtitle:"AI 姿勢與健康守護者",
+    language:"語言",interval:"提醒間隔（分鐘）",
+    privacy:"隱私模式（僅顯示骨架）",start:"啟動 ErgoGuard",
+    good:"姿勢良好 ✓",bad:"姿勢不良 ⚠",absent:"未偵測到人員",
+    angle:"頸部角度",neck_load:"頸部負荷",
+    break_msg:"休息時間！正在開啟伸展影片…",
+    quit_tip:"點擊停止以生成報告",
+    report_title:"ErgoGuard 工作階段報告",grade_label:"健康評級",
+    carbon_label:"碳節省量 (ESG)",neck_avg:"平均頸部負荷",
+    good_label:"良好姿勢",bad_label:"不良姿勢",
+    grade_A_msg:"優秀！繼續保持。",
+    grade_B_msg:"一般。請更常保持挺直坐姿以保護脊椎。",
+    grade_F_msg:"危險！您大部分時間姿勢不良，請立即伸展！",
+    session_time:"工作階段時間",frames:"幀數",
+    good_pct_label:"良好姿勢 %",session_stats:"工作階段統計",
+    reminders:"提醒事項",add_rem:"＋ 新增提醒",stop:"停止並生成報告",
+    back:"返回主頁",save_png:"儲存為 PNG",no_rem:"尚無提醒，請在上方新增。",
+    cat_work:"工作",cat_health:"健康",cat_break:"休息",cat_urgent:"緊急",
+    time_lbl:"時間 (HH:MM)",cat_lbl:"類別",name_lbl:"任務名稱",
+    name_ph:"例：喝水",modal_close:"關閉",privacy_hint:"所有 AI 均在本地運行，零資料離開您的裝置。",disclaimer:"邂緣運算：所有 AI 均在本地運行，零資料離開您的裝置。隱私模式僅顯示關節幾何，不顯示您的外豌。",min_unit:"分鐘",
+  },
+  "Español": {
+    title:"ErgoGuard Internacional",subtitle:"Guardián de Postura y Bienestar con IA",
+    language:"Idioma",interval:"Intervalo de Recordatorio (minutos)",
+    privacy:"Modo Privacidad — Solo Contorno",start:"Iniciar ErgoGuard",
+    good:"Buena Postura ✓",bad:"Mala Postura ⚠",absent:"Persona No Detectada",
+    angle:"Ángulo del Cuello",neck_load:"Carga del Cuello",
+    break_msg:"¡HORA DE DESCANSO! Abriendo video de estiramiento…",
+    quit_tip:"Haz clic en Detener para generar el informe",
+    report_title:"Reporte de Sesión ErgoGuard",grade_label:"Calificación de Salud",
+    carbon_label:"Carbono Ahorrado (ESG)",neck_avg:"Carga Promedio del Cuello",
+    good_label:"Buena Postura",bad_label:"Mala Postura",
+    grade_A_msg:"¡Excelente! ¡Sigue así!",
+    grade_B_msg:"Regular. Intenta sentarte más recto para proteger tu columna vertebral.",
+    grade_F_msg:"¡Peligro! Mala postura la mayor parte del tiempo. ¡Estírate ahora!",
+    session_time:"Tiempo de Sesión",frames:"Fotogramas",
+    good_pct_label:"% Buena Postura",session_stats:"Estadísticas de Sesión",
+    reminders:"Recordatorios",add_rem:"＋ Agregar",stop:"Detener y Generar Informe",
+    back:"Inicio",save_png:"Guardar como PNG",no_rem:"Sin recordatorios — agrega uno arriba.",
+    cat_work:"Trabajo",cat_health:"Salud",cat_break:"Descanso",cat_urgent:"Urgente",
+    time_lbl:"Hora (HH:MM)",cat_lbl:"Categoría",name_lbl:"Nombre de la tarea",
+    name_ph:"ej. Tomar agua",modal_close:"Cerrar",privacy_hint:"Toda la IA se ejecuta localmente — cero datos abandonan tu dispositivo.",disclaimer:"Edge Computing: toda la IA se ejecuta localmente. El modo privacidad solo muestra geometría corporal.",min_unit:"min",
+  },
+  "日本語": {
+    title:"ErgoGuard インターナショナル",subtitle:"AI 姿勢・健康ガーディアン",
+    language:"言語",interval:"リマインダー間隔（分）",
+    privacy:"プライバシーモード（スケルトン表示のみ）",start:"ErgoGuard を開始",
+    good:"姿勢良好 ✓",bad:"姿勢不良 ⚠",absent:"人物未検出",
+    angle:"首の角度",neck_load:"首の負荷",
+    break_msg:"休憩時間！ストレッチ動画を開いています…",
+    quit_tip:"停止をクリックしてレポートを生成",
+    report_title:"ErgoGuard セッションレポート",grade_label:"健康評価",
+    carbon_label:"削減炭素量 (ESG)",neck_avg:"平均首負荷",
+    good_label:"良い姿勢",bad_label:"悪い姿勢",
+    grade_A_msg:"素晴らしい！この調子で続けてください。",
+    grade_B_msg:"普通。脊椎を守るため、もっと真っ直ぐ座るよう心がけましょう。",
+    grade_F_msg:"危険！セッションのほとんどで姿勢が悪かったです。今すぐストレッチしてください！",
+    session_time:"セッション時間",frames:"フレーム数",
+    good_pct_label:"良い姿勢 %",session_stats:"セッション統計",
+    reminders:"リマインダー",add_rem:"＋ 追加",stop:"停止・レポート生成",
+    back:"ホームへ",save_png:"PNG で保存",no_rem:"リマインダーなし — 上で追加",
+    cat_work:"仕事",cat_health:"健康",cat_break:"休憩",cat_urgent:"緊急",
+    time_lbl:"時刻 (HH:MM)",cat_lbl:"カテゴリ",name_lbl:"タスク名",
+    name_ph:"例：水を飲む",modal_close:"閉じる",privacy_hint:"すべての AI はローカルで動作します — データは一切外部に送信されません。",disclaimer:"エッジコンピューティング：すべての AI がローカルで動作します。プライバシーモードは骨格幾何のみを表示します。",min_unit:"分",
+  },
+  "한국어": {
+    title:"ErgoGuard 인터내셔널",subtitle:"AI 자세 & 건강 수호자",
+    language:"언어",interval:"알림 간격 (분)",
+    privacy:"프라이버시 모드  (윤곽선만 표시)",start:"ErgoGuard 시작",
+    good:"좋은 자세 ✓",bad:"나쁜 자세 ⚠",absent:"사람 미감지",
+    angle:"목 각도",neck_load:"목 부하",
+    break_msg:"휴식 시간!  스트레칭 영상을 열고 있습니다…",
+    quit_tip:"중지를 클릭하여 보고서 생성",
+    report_title:"ErgoGuard 세션 보고서",grade_label:"건강 등급",
+    carbon_label:"탄소 절감 (ESG)",neck_avg:"평균 목 부하",
+    good_label:"좋은 자세",bad_label:"나쁜 자세",
+    grade_A_msg:"훌륭합니다!  계속 유지하세요.",
+    grade_B_msg:"보통입니다.  척추 보호를 위해 더 자주 바르게 앉으세요.",
+    grade_F_msg:"위험!  대부분의 시간 동안 나쁜 자세였습니다.  지금 바로 스트레칭하세요!",
+    session_time:"세션 시간",frames:"프레임 수",
+    good_pct_label:"좋은 자세 %",session_stats:"세션 통계",
+    reminders:"알림",add_rem:"＋ 추가",stop:"중지 & 보고서 생성",
+    back:"홈으로",save_png:"PNG 저장",no_rem:"알림 없음 — 위에서 추가",
+    cat_work:"업무",cat_health:"건강",cat_break:"휴식",cat_urgent:"긴급",
+    time_lbl:"시간 (HH:MM)",cat_lbl:"카테고리",name_lbl:"작업 이름",
+    name_ph:"예: 물 마시기",modal_close:"닫기",privacy_hint:"모든 AI는 로컈에서 실행됩니다 — 데이터가 기기를 떠나지 않습니다.",disclaimer:"엳지 컴퓨팅: 모든 AI가 로컈에서 실행됩니다. 프라이버시 모드는 관절 기하학만 시각화합니다.",min_unit:"분",
+  },
+  "Français": {
+    title:"ErgoGuard International",subtitle:"Gardien de Posture & Bien-être par IA",
+    language:"Langue",interval:"Intervalle de Rappel (minutes)",
+    privacy:"Mode Confidentialité — Squelette Seulement",start:"Démarrer ErgoGuard",
+    good:"Bonne Posture ✓",bad:"Mauvaise Posture ⚠",absent:"Aucune Personne Détectée",
+    angle:"Angle du Cou",neck_load:"Charge du Cou",
+    break_msg:"PAUSE !  Ouverture de la vidéo d'étirement…",
+    quit_tip:"Cliquez sur Arrêter pour générer le rapport",
+    report_title:"Rapport de Session ErgoGuard",grade_label:"Note de Santé",
+    carbon_label:"Carbone Économisé (ESG)",neck_avg:"Charge Moyenne du Cou",
+    good_label:"Bonne Posture",bad_label:"Mauvaise Posture",
+    grade_A_msg:"Excellent ! Continuez ainsi.",
+    grade_B_msg:"Moyen. Essayez de vous asseoir plus droit pour protéger votre colonne vertébrale.",
+    grade_F_msg:"Danger ! Mauvaise posture la plupart du temps. Étirez-vous maintenant !",
+    session_time:"Durée de Session",frames:"Images",
+    good_pct_label:"% Bonne Posture",session_stats:"Statistiques de Session",
+    reminders:"Rappels",add_rem:"＋ Ajouter",stop:"Arrêter et Générer le Rapport",
+    back:"Accueil",save_png:"Enregistrer en PNG",no_rem:"Aucun rappel — ajoutez-en un ci-dessus.",
+    cat_work:"Travail",cat_health:"Santé",cat_break:"Pause",cat_urgent:"Urgent",
+    time_lbl:"Heure (HH:MM)",cat_lbl:"Catégorie",name_lbl:"Nom de la tâche",
+    name_ph:"ex. Boire de l’eau",modal_close:"Fermer",privacy_hint:"Toute l’IA s’exécute localement — aucune donnée ne quitte votre appareil.",disclaimer:"Edge Computing : toute l’IA s’exécute localement. Le mode confidentialité ne visualise que la géométrie articulaire.",min_unit:"min",
+  },
+  "Deutsch": {
+    title:"ErgoGuard International",subtitle:"KI-Haltungs- & Gesundheitswächter",
+    language:"Sprache",interval:"Erinnerungsintervall (Minuten)",
+    privacy:"Datenschutzmodus — Nur Skelett",start:"ErgoGuard Starten",
+    good:"Gute Haltung ✓",bad:"Schlechte Haltung ⚠",absent:"Keine Person Erkannt",
+    angle:"Nackenwinkel",neck_load:"Nackenlast",
+    break_msg:"PAUSE!  Dehnvideo wird geöffnet…",
+    quit_tip:"Klicken Sie auf Stopp, um den Bericht zu erstellen",
+    report_title:"ErgoGuard Sitzungsbericht",grade_label:"Gesundheitsnote",
+    carbon_label:"CO₂ Gespart (ESG)",neck_avg:"Durchschnittliche Nackenlast",
+    good_label:"Gute Haltung",bad_label:"Schlechte Haltung",
+    grade_A_msg:"Ausgezeichnet! Weiter so.",
+    grade_B_msg:"Durchschnittlich. Versuche öfter gerade zu sitzen, um deine Wirbelsäule zu schützen.",
+    grade_F_msg:"Gefahr! Die meiste Zeit schlechte Haltung. Bitte jetzt dehnen!",
+    session_time:"Sitzungsdauer",frames:"Bilder",
+    good_pct_label:"Gute Haltung %",session_stats:"Sitzungsstatistiken",
+    reminders:"Erinnerungen",add_rem:"＋ Hinzufügen",stop:"Stopp & Bericht erstellen",
+    back:"Startseite",save_png:"Als PNG speichern",no_rem:"Keine Erinnerungen — füge eine oben hinzu.",
+    cat_work:"Arbeit",cat_health:"Gesundheit",cat_break:"Pause",cat_urgent:"Dringend",
+    time_lbl:"Zeit (HH:MM)",cat_lbl:"Kategorie",name_lbl:"Aufgabenname",
+    name_ph:"z.B. Wasser trinken",modal_close:"Schlie\u00dfen",privacy_hint:"Alle KI l\u00e4uft lokal \u2014 keine Daten verlassen dein Ger\u00e4t.",disclaimer:"Edge Computing: die gesamte KI l\u00e4uft lokal. Der Datenschutzmodus zeigt nur Gelenkgeometrie, nie dein Aussehen.",min_unit:"Min",
+  },
+  "Русский": {
+    title:"ErgoGuard Интернэшнл",subtitle:"ИИ-страж осанки и здоровья",
+    language:"Язык",interval:"Интервал напоминания (мин.)",
+    privacy:"Режим конфиденциальности — Только скелет",start:"Запустить ErgoGuard",
+    good:"Правильная осанка ✓",bad:"Неправильная осанка ⚠",absent:"Человек не обнаружен",
+    angle:"Угол шеи",neck_load:"Нагрузка на шею",
+    break_msg:"ВРЕМЯ ПЕРЕРЫВА!  Открываю видео…",
+    quit_tip:"Нажмите Стоп для создания отчёта",
+    report_title:"Отчёт сессии ErgoGuard",grade_label:"Оценка здоровья",
+    carbon_label:"Сэкономлено CO₂ (ESG)",neck_avg:"Средняя нагрузка на шею",
+    good_label:"Правильная осанка",bad_label:"Неправильная осанка",
+    grade_A_msg:"Отлично! Продолжайте в том же духе.",
+    grade_B_msg:"Среднее. Старайтесь чаще сидеть прямо, чтобы защитить позвоночник.",
+    grade_F_msg:"Опасность! Большую часть сессии плохая осанка. Срочно разомнитесь!",
+    session_time:"Время сессии",frames:"Кадров",
+    good_pct_label:"Хорошая осанка %",session_stats:"Статистика сессии",
+    reminders:"Напоминания",add_rem:"＋ Добавить",stop:"Стоп & Отчёт",
+    back:"На главную",save_png:"Сохранить PNG",no_rem:"Нет напоминаний — добавьте выше.",
+    cat_work:"Работа",cat_health:"Здоровье",cat_break:"Перерыв",cat_urgent:"Срочно",
+    time_lbl:"Время (HH:MM)",cat_lbl:"Категория",name_lbl:"Название задачи",
+    name_ph:"напр. Выпить воды",modal_close:"Закрыть",privacy_hint:"Весь ИИ работает локально — данные не покидают ваше устройство.",disclaimer:"Edge Computing: весь ИИ работает локально. Режим конфиденциальности отображает только геометрию суставов.",min_unit:"мин",
+  },
+  "Português": {
+    title:"ErgoGuard Internacional",subtitle:"Guardião de Postura e Bem-Estar com IA",
+    language:"Idioma",interval:"Intervalo de Lembrete (minutos)",
+    privacy:"Modo Privacidade — Apenas Contorno",start:"Iniciar ErgoGuard",
+    good:"Boa Postura ✓",bad:"Má Postura ⚠",absent:"Nenhuma Pessoa Detectada",
+    angle:"Ângulo do Pescoço",neck_load:"Carga do Pescoço",
+    break_msg:"HORA DO INTERVALO!  Abrindo vídeo de alongamento…",
+    quit_tip:"Clique em Parar para gerar o relatório",
+    report_title:"Relatório de Sessão ErgoGuard",grade_label:"Nota de Saúde",
+    carbon_label:"Carbono Poupado (ESG)",neck_avg:"Carga Média do Pescoço",
+    good_label:"Boa Postura",bad_label:"Má Postura",
+    grade_A_msg:"Excelente! Continue assim.",
+    grade_B_msg:"Médio. Tente sentar mais ereto para proteger sua coluna vertebral.",
+    grade_F_msg:"Perigo! Má postura na maior parte da sessão. Alongue-se agora!",
+    session_time:"Tempo de Sessão",frames:"Quadros",
+    good_pct_label:"% Boa Postura",session_stats:"Estatísticas de Sessão",
+    reminders:"Lembretes",add_rem:"＋ Adicionar",stop:"Parar & Gerar Relatório",
+    back:"Início",save_png:"Salvar como PNG",no_rem:"Sem lembretes — adicione um acima.",
+    cat_work:"Trabalho",cat_health:"Saúde",cat_break:"Pausa",cat_urgent:"Urgente",
+    time_lbl:"Hora (HH:MM)",cat_lbl:"Categoria",name_lbl:"Nome da tarefa",
+    name_ph:"ex. Beber \u00e1gua",modal_close:"Fechar",privacy_hint:"Toda a IA \u00e9 executada localmente \u2014 zero dados saem do seu dispositivo.",disclaimer:"Edge Computing: toda a IA \u00e9 executada localmente. O modo privacidade visualiza apenas a geometria articular.",min_unit:"min",
+  },
+  "العربية": {
+    title:"ErgoGuard الدولية",subtitle:"حارس الوضعية والصحة بالذكاء الاصطناعي",
+    language:"اللغة",interval:"فترة التذكير (دقيقة)",
+    privacy:"وضع الخصوصية — هيكل عظمي فقط",start:"تشغيل ErgoGuard",
+    good:"وضعية جيدة ✓",bad:"وضعية سيئة ⚠",absent:"لم يتم اكتشاف أي شخص",
+    angle:"زاوية الرقبة",neck_load:"حمل الرقبة",
+    break_msg:"حان وقت الاستراحة!  جارٍ فتح فيديو التمدد…",
+    quit_tip:"انقر إيقاف لإنشاء التقرير",
+    report_title:"تقرير جلسة ErgoGuard",grade_label:"تقييم الصحة",
+    carbon_label:"الكربون الموفَّر (ESG)",neck_avg:"متوسط حمل الرقبة",
+    good_label:"وضعية جيدة",bad_label:"وضعية سيئة",
+    grade_A_msg:"ممتاز! استمر في ذلك.",
+    grade_B_msg:"متوسط. حاول الجلوس باستقامة أكثر لحماية عمودك الفقري.",
+    grade_F_msg:"خطر! وضعيتك سيئة معظم الجلسة. تمدد الآن!",
+    session_time:"وقت الجلسة",frames:"الإطارات",
+    good_pct_label:"% وضعية جيدة",session_stats:"إحصائيات الجلسة",
+    reminders:"التذكيرات",add_rem:"＋ إضافة",stop:"إيقاف وإنشاء التقرير",
+    back:"الرئيسية",save_png:"حفظ كـ PNG",no_rem:"لا توجد تذكيرات — أضف واحدة أعلاه.",
+    cat_work:"عمل",cat_health:"صحة",cat_break:"استراحة",cat_urgent:"عاجل",
+    time_lbl:"الوقت (HH:MM)",cat_lbl:"الفئة",name_lbl:"اسم المهمة",
+    name_ph:"مثال: اشرب الماء",modal_close:"إغلاق",privacy_hint:"يعمل الذكاء الاصطناعي محليًا — لا تغادر البيانات جهازك.",disclaimer:"الحوسبة الطرفية: يعمل الذكاء الاصطناعي محليًا. وضع الخصوصية يُظهر هندسة المفاصل فقط.",min_unit:"د",
+  },
+};
+
+// ── Exercise video URLs (per language) ────────────────────────────────────
+const EXERCISE_VIDEOS = {
+  "English":  "https://www.youtube.com/watch?v=M4pAQhKdOek",
+  "繁體中文":  "https://www.youtube.com/watch?v=RFRggWl1cNk",
+  "Español":  "https://www.youtube.com/watch?v=ILlAgJxoV9M",
+  "日本語":    "https://www.youtube.com/watch?v=8mS-GFpbNsE",
+  "한국어":    "https://www.youtube.com/watch?v=5i7aExKwCOU",
+  "Français":  "https://www.youtube.com/watch?v=J0PFkEPRtX0",
+  "Deutsch":   "https://www.youtube.com/watch?v=U0_cz0_GSRE",
+  "Русский":   "https://www.youtube.com/watch?v=Bj6hD3rCNug",
+  "Português": "https://www.youtube.com/watch?v=IVeGYKOScjQ",
+  "العربية":  "https://www.youtube.com/watch?v=g_tea8ZNk5A",
+};
+
+// ── Category palette ───────────────────────────────────────────────────────
+const CAT_COLORS = { Work:"#4A90D9", Health:"#4CAF50", Break:"#F5A623", Urgent:"#E74C3C" };
+
+// ── App state ──────────────────────────────────────────────────────────────
+let lang          = "English";
+let t             = T["English"];
+let intervalMins  = 60;
+let privacyMode   = true;
+let reminders     = [];           // { name, hour, minute, category, done }
+let firedSet      = new Set();    // which reminder ids fired this session
+
+// Detection state
+let poseInstance  = null;
+let cameraInst    = null;
+let sessionStart  = 0;
+let nextBreakAt   = 0;
+let postureLog    = [];           // { ts, inclination, status: "Good"|"Bad"|"Absent" }
+let neckLoadLog   = [];
+let badStartTs    = null;         // timestamp when last bad streak started
+let lastBadBeep   = 0;
+let reportChart   = null;
+
+// ── Utility: vector angle (degrees) ───────────────────────────────────────
+function vecAngleDeg(ax, ay, bx, by) {
+  const dot = ax*bx + ay*by;
+  const ma  = Math.hypot(ax, ay);
+  const mb  = Math.hypot(bx, by);
+  if (ma < 1e-9 || mb < 1e-9) return 180;
+  return (Math.acos(Math.max(-1, Math.min(1, dot/(ma*mb)))) * 180) / Math.PI;
+}
+
+// ── Hansraj neck load model ────────────────────────────────────────────────
+function calcNeckLoad(inclinationDeg) {
+  const fwd    = Math.max(0, 180 - inclinationDeg);
+  const fwdRad = (Math.min(fwd, 90) * Math.PI) / 180;
+  return +(4.5 + 27.5 * Math.pow(Math.sin(fwdRad), 1.2)).toFixed(1);
+}
+
+// ── Carbon saved ──────────────────────────────────────────────────────────
+function calcCarbonSaved(secs, badFrac) {
+  const h = secs / 3600;
+  const g = Math.max(0, 1 - badFrac);
+  return +((h * 12 * 0.20 * g) / 1000 * 0.475).toFixed(5);
+}
+
+// ── Grading ────────────────────────────────────────────────────────────────
+function healthGrade(goodPct) {
+  if (goodPct >= 60) return "A";
+  if (goodPct >= 25) return "B";
+  return "F";
+}
+const GRADE_COLOR = { A:"#2ECC71", B:"#F39C12", F:"#E74C3C" };
+
+// ── Web Audio beep ─────────────────────────────────────────────────────────
+function playBeep(freq = 660, dur = 0.35) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+  } catch(e) { /* silent fallback */ }
+}
+
+// ── Show/hide screens ──────────────────────────────────────────────────────
+function showScreen(name) {
+  document.getElementById("screen-launcher").classList.add("hidden");
+  document.getElementById("screen-detection").classList.add("hidden");
+  document.getElementById("screen-report").classList.add("hidden");
+  document.getElementById(`screen-${name}`).classList.remove("hidden");
+}
+
+// ── Language change ────────────────────────────────────────────────────────
+function onLangChange() {
+  lang = document.getElementById("sel-lang").value;
+  t    = T[lang] || T["English"];
+  applyTranslations();
+}
+
+function applyTranslations() {
+  setText("lbl-title",       t.title);
+  setText("lbl-subtitle",    t.subtitle);
+  setText("lbl-lang",        t.language);
+  setText("lbl-interval",    t.interval);
+  setText("lbl-privacy",     t.privacy);
+  setText("lbl-privacy-hint", t.privacy_hint);
+  setText("lbl-disclaimer",  t.disclaimer);
+  setText("btn-start-text",  t.start);
+  setText("btn-reminders-text", t.reminders);
+  setText("btn-stop-text",   t.stop);
+  setText("btn-back-text",   t.back);
+  setText("btn-download-text",t.save_png);
+  setText("modal-title",     t.reminders);
+  setText("modal-name-lbl",  t.name_lbl);
+  setText("modal-time-lbl",  t.time_lbl);
+  setText("modal-cat-lbl",   t.cat_lbl);
+  setText("btn-add-rem-text",t.add_rem);
+  setText("rem-no-items",    t.no_rem);
+  setText("rep-title",       t.report_title);
+  setText("btn-modal-close", t.modal_close);
+  // Input placeholder
+  setAttr("rem-name", "placeholder", t.name_ph);
+  // Slider value unit (re-render with current slider value)
+  const slider = document.getElementById("slider-interval");
+  if (slider) {
+    document.getElementById("lbl-interval-val").textContent =
+      slider.value + " " + (t.min_unit || "min");
+  }
+  // Category options in select
+  const sel = document.getElementById("rem-cat");
+  if (sel) {
+    sel.options[0].text = `💼 ${t.cat_work}`;
+    sel.options[1].text = `💚 ${t.cat_health}`;
+    sel.options[2].text = `☕ ${t.cat_break}`;
+    sel.options[3].text = `🔴 ${t.cat_urgent}`;
+  }
+}
+
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
+function setAttr(id, attr, value) {
+  const el = document.getElementById(id);
+  if (el && value !== undefined) el.setAttribute(attr, value);
+}
+
+// ── Launcher Start ─────────────────────────────────────────────────────────
+function onStart() {
+  intervalMins = parseInt(document.getElementById("slider-interval").value, 10);
+  privacyMode  = document.getElementById("chk-privacy").checked;
+  postureLog   = [];
+  neckLoadLog  = [];
+  firedSet     = new Set();
+  sessionStart = Date.now();
+  nextBreakAt  = sessionStart + intervalMins * 60 * 1000;
+  showScreen("detection");
+  startMediaPipe();
+}
+
+// ── MediaPipe setup ────────────────────────────────────────────────────────
+function startMediaPipe() {
+  const videoEl  = document.getElementById("vid");
+  const canvas   = document.getElementById("canvas-pose");
+  const ctx2d    = canvas.getContext("2d");
+
+  // Resize canvas to fill container nicely
+  const maxW = Math.min(window.innerWidth - 48, 720);
+  canvas.width  = maxW;
+  canvas.height = Math.round(maxW * 0.75);
+
+  poseInstance = new Pose({
+    locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`
+  });
+  poseInstance.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    minDetectionConfidence: 0.45,
+    minTrackingConfidence: 0.45,
+  });
+  poseInstance.onResults(results => onPoseResults(results, canvas, ctx2d));
+
+  cameraInst = new Camera(videoEl, {
+    onFrame: async () => { await poseInstance.send({ image: videoEl }); },
+    width: 640, height: 480,
+  });
+  cameraInst.start().catch(err => {
+    alert("Camera error: " + err.message +
+          "\nMake sure you are running via http://localhost:8080 (not file://).");
+  });
+}
+
+// ── Pose results handler ───────────────────────────────────────────────────
+function onPoseResults(results, canvas, ctx) {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, W, H);
+
+  const now = Date.now();
+
+  if (!results.poseLandmarks) {
+    postureLog.push({ ts: now, inclination: 180, status: "Absent" });
+    updateHUD(t.absent, 180, 4.5, false);
+    checkTimers(now);
+    return;
+  }
+
+  const lm = results.poseLandmarks; // normalised [0..1]
+
+  // ── Analyse posture ─────────────────────────────────────────────────────
+  let postureBAD   = false;
+  let inclination  = 180;
+
+  const get = i => lm[i] ? { x: lm[i].x * W, y: lm[i].y * H, v: lm[i].visibility } : null;
+  const ls = get(11), rs = get(12), le = get(7), re = get(8),
+        lh = get(23), rh = get(24);
+
+  if (ls && rs && ls.v > 0.4 && rs.v > 0.4) {
+    // Condition A — shoulder Y asymmetry
+    if (Math.abs(ls.y - rs.y) / H > 0.08) postureBAD = true;
+
+    const shW = Math.abs(ls.x - rs.x);
+
+    // Condition B — ear forward relative to shoulder
+    for (const [ear, shX, shY] of [[le, ls.x, ls.y], [re, rs.x, rs.y]]) {
+      if (ear && ear.v > 0.3) {
+        if (shW > 1 && Math.abs(ear.x - shX) / shW > 0.35) postureBAD = true;
+        if ((ear.y - shY) / H > 0.06) postureBAD = true;
+      }
+    }
+
+    // Condition C — inclination angle
+    const angles = [];
+    for (const [e, s, h] of [[le, ls, get(23)], [re, rs, get(24)]]) {
+      if (e && s && h && e.v > 0.3 && h.v > 0.3) {
+        const ang = vecAngleDeg(e.x-s.x, e.y-s.y, h.x-s.x, h.y-s.y);
+        angles.push(ang);
+        if (ang < 145) postureBAD = true;
+      }
+    }
+    if (angles.length) inclination = Math.min(...angles);
+  }
+
+  const neckLoad = calcNeckLoad(inclination);
+  neckLoadLog.push(neckLoad);
+  const status = postureBAD ? "Bad" : "Good";
+  postureLog.push({ ts: now, inclination, status });
+
+  // ── Draw stickman ───────────────────────────────────────────────────────
+  drawStickman(ctx, lm, W, H, postureBAD);
+
+  // ── Bad posture overlay & audio ─────────────────────────────────────────
+  const badOverlay = document.getElementById("bad-overlay");
+  if (postureBAD) {
+    badOverlay.classList.add("visible", "pulsing");
+    if (badStartTs === null) badStartTs = now;
+    // Beep every 30 s of continuous bad posture
+    if (now - lastBadBeep > 30000) {
+      playBeep(440, 0.4);
+      lastBadBeep = now;
+    }
+  } else {
+    badOverlay.classList.remove("visible", "pulsing");
+    badStartTs   = null;
+    lastBadBeep  = 0;
+  }
+
+  updateHUD(status === "Bad" ? t.bad : t.good, inclination, neckLoad, postureBAD);
+  checkTimers(now);
+}
+
+// ── Stickman drawing ───────────────────────────────────────────────────────
+const SKELETON = [
+  [0,1],[1,2],[2,3],[3,7],[0,4],[4,5],[5,6],[6,8],[9,10],
+  [11,12],[11,23],[12,24],[23,24],
+  [11,13],[13,15],[15,17],[15,19],[15,21],[17,19],
+  [12,14],[14,16],[16,18],[16,20],[16,22],[18,20],
+  [23,25],[25,27],[27,29],[27,31],[29,31],
+  [24,26],[26,28],[28,30],[28,32],[30,32],
+];
+
+function drawStickman(ctx, lm, W, H, bad) {
+  const jc = bad ? "#FF6B6B" : "#4fc26b";
+  const bc = bad ? "#E74C3C" : "#00BCD4";
+
+  ctx.lineWidth   = 2;
+  ctx.strokeStyle = bc;
+  ctx.lineCap     = "round";
+
+  for (const [a, b] of SKELETON) {
+    const pa = lm[a], pb = lm[b];
+    if (!pa || !pb || pa.visibility < 0.3 || pb.visibility < 0.3) continue;
+    ctx.beginPath();
+    ctx.moveTo(pa.x * W, pa.y * H);
+    ctx.lineTo(pb.x * W, pb.y * H);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = jc;
+  for (let i = 0; i < lm.length; i++) {
+    const p = lm[i];
+    if (!p || p.visibility < 0.3) continue;
+    const r = [0,11,12,23,24].includes(i) ? 5 : 3;
+    ctx.beginPath();
+    ctx.arc(p.x * W, p.y * H, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// ── HUD update ─────────────────────────────────────────────────────────────
+function updateHUD(statusText, inclination, neckLoad, bad) {
+  const dot = document.getElementById("det-status-dot");
+  const s   = document.getElementById("det-status");
+  if (bad) {
+    dot.className = "inline-block w-3 h-3 rounded-full bg-red-500 mr-2 align-middle";
+    s.className   = "text-red-400 font-bold text-sm";
+  } else {
+    dot.className = "inline-block w-3 h-3 rounded-full bg-green-400 mr-2 align-middle";
+    s.className   = "text-white font-bold text-sm";
+  }
+  s.textContent = statusText;
+
+  const remaining = Math.max(0, nextBreakAt - Date.now());
+  const mm = String(Math.floor(remaining / 60000)).padStart(2, "0");
+  const ss = String(Math.floor((remaining % 60000) / 1000)).padStart(2, "0");
+  document.getElementById("det-next").textContent = `${mm}:${ss}`;
+  document.getElementById("hud-angle").textContent =
+    inclination < 179 ? `${t.angle}: ${inclination.toFixed(0)}°` : "—";
+  document.getElementById("hud-neck").textContent =
+    `${t.neck_load}: ${neckLoad.toFixed(1)} kg`;
+}
+
+// ── Timers: break & daily reminders ───────────────────────────────────────
+function checkTimers(now) {
+  // Break reminder
+  if (now >= nextBreakAt) {
+    const url = EXERCISE_VIDEOS[lang] || EXERCISE_VIDEOS["English"];
+    window.open(url, "_blank");
+    const bb = document.getElementById("break-banner");
+    bb.textContent = t.break_msg;
+    bb.style.display = "block";
+    setTimeout(() => { bb.style.display = "none"; }, 9000);
+    nextBreakAt = now + intervalMins * 60 * 1000;
+    playBeep(523, 0.5);
+  }
+
+  // Daily reminders
+  const d = new Date(now);
+  const curH = d.getHours(), curM = d.getMinutes();
+  for (const rem of reminders) {
+    if (rem.done) continue;
+    const id = rem._id;
+    if (rem.hour === curH && rem.minute === curM && !firedSet.has(id)) {
+      firedSet.add(id);
+      const ra = document.getElementById("reminder-alert");
+      ra.textContent = `🔔  ${rem.name}`;
+      ra.style.borderLeftColor = CAT_COLORS[rem.category] || "#4CAF50";
+      ra.style.display = "block";
+      setTimeout(() => { ra.style.display = "none"; }, 9000);
+      playBeep(587, 0.4);
+    }
+  }
+}
+
+// ── Stop & Report ──────────────────────────────────────────────────────────
+function onStop() {
+  if (cameraInst)   { cameraInst.stop();   cameraInst   = null; }
+  if (poseInstance) { poseInstance.close(); poseInstance = null; }
+
+  // Restore video element (reset for next run)
+  const vid = document.getElementById("vid");
+  if (vid.srcObject) {
+    vid.srcObject.getTracks().forEach(tr => tr.stop());
+    vid.srcObject = null;
+  }
+
+  buildReport();
+  showScreen("report");
+}
+
+// ── Build report ───────────────────────────────────────────────────────────
+function buildReport() {
+  const sessionSecs = (Date.now() - sessionStart) / 1000;
+  const sessionMins = (sessionSecs / 60).toFixed(1);
+  const present     = postureLog.filter(p => p.status !== "Absent");
+  const goodN       = present.filter(p => p.status === "Good").length;
+  const badN        = present.filter(p => p.status === "Bad").length;
+  const presentN    = goodN + badN;
+  const goodPct     = presentN > 0 ? (goodN / presentN) * 100 : 0;
+  const badFrac     = presentN > 0 ? badN  / presentN : 0.5;
+  const grade       = healthGrade(goodPct);
+  const gradeCol    = GRADE_COLOR[grade];
+  const co2g        = (calcCarbonSaved(sessionSecs, badFrac) * 1000).toFixed(3);
+  const avgNeck     = neckLoadLog.length
+    ? (neckLoadLog.reduce((a, b) => a + b, 0) / neckLoadLog.length).toFixed(1)
+    : "4.5";
+
+  const feedbackMap = { A: t.grade_A_msg, B: t.grade_B_msg, F: t.grade_F_msg };
+
+  // Grade badge
+  const gradeEl  = document.getElementById("rep-grade");
+  gradeEl.textContent  = grade;
+  gradeEl.className    = `text-6xl font-black leading-none grade-${grade}`;
+  document.getElementById("rep-grade-label").textContent = t.grade_label;
+  document.getElementById("rep-feedback").textContent    = feedbackMap[grade];
+  document.getElementById("rep-date").textContent        =
+    new Date().toLocaleString([], { dateStyle:"medium", timeStyle:"short" });
+
+  // Stats
+  const statRows = [
+    [t.session_time,   `${sessionMins} min`],
+    [t.frames,         postureLog.length.toLocaleString()],
+    [t.good_label,     `${goodN.toLocaleString()} (${goodPct.toFixed(1)}%)`],
+    [t.bad_label,      badN.toLocaleString()],
+    [t.grade_label,    grade],
+    [t.neck_avg,       `${avgNeck} kg`],
+    [t.carbon_label,   `${co2g} g CO₂`],
+  ];
+  const statsDiv = document.getElementById("rep-stats");
+  statsDiv.innerHTML = statRows.map(([l, v]) => `
+    <div class="stat-row">
+      <span class="text-[var(--muted)]">${l}</span>
+      <span class="stat-val" style="color:${l === t.grade_label ? gradeCol : ''}">${v}</span>
+    </div>`).join("");
+
+  // ESG footer
+  document.getElementById("rep-co2").textContent         = `${co2g} g CO₂`;
+  document.getElementById("rep-neck-avg").textContent    = `${avgNeck} kg`;
+  document.getElementById("rep-session-time").textContent = `${sessionMins} min`;
+
+  // Donut chart
+  if (reportChart) { reportChart.destroy(); reportChart = null; }
+  const chartCtx = document.getElementById("report-chart").getContext("2d");
+  reportChart = new Chart(chartCtx, {
+    type: "doughnut",
+    data: {
+      labels: [t.good_label, t.bad_label],
+      datasets: [{
+        data: presentN > 0 ? [goodPct, 100 - goodPct] : [50, 50],
+        backgroundColor: ["#2ECC71", "#E74C3C"],
+        borderColor: ["#fff", "#fff"],
+        borderWidth: 3,
+      }]
+    },
+    options: {
+      cutout: "70%",
+      animation: { duration: 900, easing: "easeOutQuart" },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { color:"#333", font:{ size:12, family:"Segoe UI" }, padding:16 }
+        },
+        tooltip: {
+          callbacks: { label: ctx => ` ${ctx.parsed.toFixed(1)}%` }
+        }
+      }
+    }
+  });
+}
+
+// ── Download report as PNG ─────────────────────────────────────────────────
+function downloadReport() {
+  const chartCanvas = document.getElementById("report-chart");
+  const a = document.createElement("a");
+  a.href     = chartCanvas.toDataURL("image/png");
+  a.download = "ErgoGuard_Report.png";
+  a.click();
+}
+
+// ── Reminders CRUD ─────────────────────────────────────────────────────────
+let _remIdCounter = 0;
+
+function openRemindersModal() {
+  document.getElementById("modal-reminders").classList.remove("hidden");
+  applyTranslations();
+  renderReminders();
+}
+function closeRemindersModal() {
+  document.getElementById("modal-reminders").classList.add("hidden");
+}
+
+function addReminder() {
+  const name = document.getElementById("rem-name").value.trim();
+  const hour = parseInt(document.getElementById("rem-hour").value, 10);
+  const min  = parseInt(document.getElementById("rem-min").value,  10);
+  const cat  = document.getElementById("rem-cat").value;
+
+  if (!name) { document.getElementById("rem-name").focus(); return; }
+  if (isNaN(hour) || hour < 0 || hour > 23 ||
+      isNaN(min)  || min  < 0 || min  > 59) return;
+
+  reminders.push({ _id: ++_remIdCounter, name, hour, minute: min, category: cat, done: false });
+  document.getElementById("rem-name").value = "";
+  renderReminders();
+}
+
+function toggleDone(id) {
+  const r = reminders.find(x => x._id === id);
+  if (r) { r.done = !r.done; renderReminders(); }
+}
+
+function deleteReminder(id) {
+  reminders = reminders.filter(x => x._id !== id);
+  renderReminders();
+}
+
+function renderReminders() {
+  const list = document.getElementById("rem-list");
+  const none = document.getElementById("rem-no-items");
+  if (!reminders.length) {
+    none.style.display = "block";
+    list.innerHTML = "";
+    return;
+  }
+  none.style.display = "none";
+  list.innerHTML = reminders.map(r => `
+    <div class="rem-row ${r.done ? 'done' : ''}"
+         style="border-left-color:${CAT_COLORS[r.category] || '#4CAF50'}">
+      <span class="cat-swatch" style="background:${CAT_COLORS[r.category] || '#4CAF50'}"></span>
+      <span class="font-mono text-xs text-[var(--muted)]">${String(r.hour).padStart(2,'0')}:${String(r.minute).padStart(2,'0')}</span>
+      <span class="flex-1 text-sm font-medium">${escHtml(r.name)}</span>
+      <span class="text-xs text-[var(--muted)]">${escHtml(r.category)}</span>
+      <button onclick="toggleDone(${r._id})" title="Toggle done"
+              class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700 hover:bg-green-200 transition">✓</button>
+      <button onclick="deleteReminder(${r._id})" title="Delete"
+              class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-600 hover:bg-red-200 transition">✕</button>
+    </div>`).join("");
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  applyTranslations();
+});
+</script>
+
+</body>
+</html>
