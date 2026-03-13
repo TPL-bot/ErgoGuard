@@ -1,8 +1,8 @@
 """
-╔══════════════════════════════════════════════════════════════════════════════╗
-║              ErgoGuard International  –  Competition Edition                ║
-║  Privacy-First  ·  AI Posture Analytics  ·  ESG Reporting  ·  Multilingual  ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
+??             ErgoGuard International  ?? Competition Edition                ??
+?? Privacy-First  ·  AI Posture Analytics  ·  ESG Reporting  ·  Multilingual  ??
+?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
 
 Requirements:
     pip install opencv-python mediapipe numpy matplotlib screen-brightness-control
@@ -11,16 +11,16 @@ Usage:
     python "ergoguard 02.py"
 
 Architecture:
-    1. Tkinter Launcher  – language / interval / privacy settings
-    2. OpenCV Loop       – real-time pose detection (MediaPipe)
-    3. Privacy Stickman  – black canvas + skeleton only (no raw feed)
-    4. Reminder System   – timed break with context-aware YouTube video
-    5. Matplotlib Report – donut chart, health grade, ESG footer
+    1. Tkinter Launcher  ??language / interval / privacy settings
+    2. OpenCV Loop       ??real-time pose detection (MediaPipe)
+    3. Privacy Stickman  ??black canvas + skeleton only (no raw feed)
+    4. Reminder System   ??timed break with context-aware YouTube video
+    5. Matplotlib Report ??donut chart, health grade, ESG footer
 """
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 #  IMPORTS  (all graceful)
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 import time
 import math
 import sys
@@ -52,7 +52,7 @@ except ImportError:
 
 try:
     import matplotlib
-    matplotlib.use("Agg")          # non-interactive backend – avoids Tk conflicts
+    matplotlib.use("Agg")          # non-interactive backend ??avoids Tk conflicts
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
     MPL_OK = True
@@ -60,9 +60,9 @@ except ImportError:
     MPL_OK = False
 
 try:
-    from plyer import notification as _plyer_notify
+    from plyer import notification as _plyer_notify # type: ignore
     PLYER_OK = True
-except ImportError:  # graceful fallback – toast becomes a print statement
+except ImportError:  # graceful fallback ??toast becomes a print statement
     _plyer_notify = None
     PLYER_OK = False
     print("[WARN] matplotlib not found. Reports disabled.")
@@ -73,7 +73,7 @@ try:
     TK_OK = True
 except ImportError:
     TK_OK = False
-    print("[WARN] tkinter unavailable – using CLI defaults.")
+    print("[WARN] tkinter unavailable ??using CLI defaults.")
 
 try:
     import screen_brightness_control as sbc
@@ -82,16 +82,16 @@ except ImportError:
     SBC_OK = False   # optional; ESG calc still runs without it
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  TRANSLATIONS  (Top-10 global languages)  –  keys are native-script display names
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+#  TRANSLATIONS  (Top-10 global languages)  ?? keys are native-script display names
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 TRANSLATIONS = {
     "English": {
         "title":         "ErgoGuard International",
         "subtitle":      "AI Posture & Wellness Guardian",
         "language":      "Language",
         "interval":      "Reminder Interval (minutes)",
-        "privacy":       "Privacy Mode  (Stickman Only – No Camera Feed)",
+        "privacy":       "Privacy Mode  (Stickman Only ??No Camera Feed)",
         "start":         "Start ErgoGuard",
         "good":          "Good Posture  [OK]",
         "bad":           "Bad Posture   [!!]",
@@ -104,7 +104,7 @@ TRANSLATIONS = {
         "quit_tip":      "Press  Q  to quit & generate report",
         "report_title":  "ErgoGuard Session Report",
         "grade_label":   "Health Grade",
-        "carbon_label":  "Carbon Saved (ESG)",
+        "carbon_label":  "Max Continuous Slouch Time",
         "neck_avg":      "Avg Neck Load",
         "good_label":    "Good Posture",
         "bad_label":     "Bad Posture",
@@ -134,7 +134,7 @@ TRANSLATIONS = {
         "quit_tip":      "\u6309  Q  \u9000\u51fa\u4e26\u751f\u6210\u5831\u544a",
         "report_title":  "ErgoGuard \u5de5\u4f5c\u968e\u6bb5\u5831\u544a",
         "grade_label":   "\u5065\u5eb7\u8a55\u7d1a",
-        "carbon_label":  "\u78b3\u7bc0\u7701\u91cf (ESG)",
+        "carbon_label":  "\u6700\u9577\u9023\u7e8c\u99dd\u80cc\u6642\u9593",
         "neck_avg":      "\u5e73\u5747\u9838\u90e8\u8ca0\u8377",
         "good_label":    "\u826f\u597d\u59ff\u52e2",
         "bad_label":     "\u4e0d\u826f\u59ff\u52e2",
@@ -164,7 +164,7 @@ TRANSLATIONS = {
         "quit_tip":      "Presiona  Q  para salir y generar reporte",
         "report_title":  "Reporte de Sesion ErgoGuard",
         "grade_label":   "Calificacion de Salud",
-        "carbon_label":  "Carbono Ahorrado (ESG)",
+        "carbon_label":  "Máximo Tiempo de Encorvamiento Continuo",
         "neck_avg":      "Carga Promedio del Cuello",
         "good_label":    "Buena Postura",
         "bad_label":     "Mala Postura",
@@ -194,7 +194,7 @@ TRANSLATIONS = {
         "quit_tip":      "Q \u3092\u62bc\u3057\u3066\u7d42\u4e86\u30fb\u30ec\u30dd\u30fc\u30c8\u751f\u6210",
         "report_title":  "ErgoGuard \u30bb\u30c3\u30b7\u30e7\u30f3\u30ec\u30dd\u30fc\u30c8",
         "grade_label":   "\u5065\u5eb7\u8a55\u4fa1",
-        "carbon_label":  "\u524a\u6e1b\u70ad\u7d20\u91cf (ESG)",
+        "carbon_label":  "\u6700\u9577\u9023\u7d9a\u732b\u80cc\u30bf\u30a4\u30e0",
         "neck_avg":      "\u5e73\u5747\u9996\u8ca0\u8377",
         "good_label":    "\u826f\u3044\u59ff\u52e2",
         "bad_label":     "\u60aa\u3044\u59ff\u52e2",
@@ -224,7 +224,7 @@ TRANSLATIONS = {
         "quit_tip":      "Q \ub97c \ub208\ub7ec \uc885\ub8cc \ubc0f \ubcf4\uace0\uc11c \uc0dd\uc131",
         "report_title":  "ErgoGuard \uc138\uc158 \ubcf4\uace0\uc11c",
         "grade_label":   "\uac74\uac15 \ub4f1\uae09",
-        "carbon_label":  "\ud0c4\uc18c \uc808\uac10 (ESG)",
+        "carbon_label":  "\ucd5c\ub300 \uc5f0\uc18d \uad6c\ubd80\uc815\ud55c \uc790\uc138 \uc2dc\uac04",
         "neck_avg":      "\ud3c9\uade0 \ubaa9 \ubd80\ud558",
         "good_label":    "\uc88b\uc740 \uc790\uc138",
         "bad_label":     "\ub098\uc05c \uc790\uc138",
@@ -254,7 +254,7 @@ TRANSLATIONS = {
         "quit_tip":      "Appuyez sur  Q  pour quitter et generer le rapport",
         "report_title":  "Rapport de Session ErgoGuard",
         "grade_label":   "Note de Sante",
-        "carbon_label":  "Carbone Economise (ESG)",
+        "carbon_label":  "Max Temps de Voûte Continue",
         "neck_avg":      "Charge Moyenne du Cou",
         "good_label":    "Bonne Posture",
         "bad_label":     "Mauvaise Posture",
@@ -284,7 +284,7 @@ TRANSLATIONS = {
         "quit_tip":      "Druecke  Q  zum Beenden & Bericht erstellen",
         "report_title":  "ErgoGuard Sitzungsbericht",
         "grade_label":   "Gesundheitsnote",
-        "carbon_label":  "CO2 Gespart (ESG)",
+        "carbon_label":  "Max. Kont. Rundrückendauer",
         "neck_avg":      "Durchschnittliche Nackenlast",
         "good_label":    "Gute Haltung",
         "bad_label":     "Schlechte Haltung",
@@ -344,8 +344,8 @@ TRANSLATIONS = {
         "quit_tip":      "Pressione  Q  para sair e gerar relatorio",
         "report_title":  "Relatorio de Sessao ErgoGuard",
         "grade_label":   "Nota de Saude",
-        "carbon_label":  "Carbono Poupado (ESG)",
-        "neck_avg":      "Carga Media do Pescoco",
+        "carbon_label":  "Tempo Máximo Contínuo de Má Postura",
+        "neck_avg":      "Carga Média do Pescoço",
         "good_label":    "Boa Postura",
         "bad_label":     "Ma Postura",
         "grade_A_msg":   "Excelente!  Continue assim.",
@@ -390,9 +390,9 @@ TRANSLATIONS = {
 
 LANGUAGE_LIST = list(TRANSLATIONS.keys())
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 #  CONTEXT-AWARE EXERCISE VIDEOS  (one per language)
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 EXERCISE_VIDEOS = {
     # 2-min office desk stretch – English
     "English":           "https://www.youtube.com/watch?v=M4pAQhKdOek",
@@ -416,17 +416,18 @@ EXERCISE_VIDEOS = {
     "العربية":           "https://www.youtube.com/watch?v=g_tea8ZNk5A",
 }
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  DAILY  REMINDERS  –  global in-memory store  (persists for the full session)
-# ──────────────────────────────────────────────────────────────────────────────
+
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+#  DAILY  REMINDERS  ?? global in-memory store  (persists for the full session)
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 # Each entry is a dict: {"name": str, "hour": int, "minute": int,
 #                        "category": str, "done": bool}
 DAILY_REMINDERS: list = []
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 #  BIOMECHANICAL  &  ESG  UTILITIES
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 def calc_neck_load(inclination_angle_deg: float) -> float:
     """
     Estimate effective neck load (kg) using the simplified Hansraj model.
@@ -435,11 +436,11 @@ def calc_neck_load(inclination_angle_deg: float) -> float:
                             vectors (180 deg = perfectly upright).
 
     Published reference loads (Hansraj, 2014):
-        0 deg forward  →  4.5 kg
-       15 deg forward  →  12  kg
-       30 deg forward  →  18  kg
-       45 deg forward  →  22  kg
-       60 deg forward  →  27  kg
+        0 deg forward  ?? 4.5 kg
+       15 deg forward  ?? 12  kg
+       30 deg forward  ?? 18  kg
+       45 deg forward  ?? 22  kg
+       60 deg forward  ?? 27  kg
     """
     forward_deg = max(0.0, 180.0 - inclination_angle_deg)
     forward_rad = math.radians(min(forward_deg, 90.0))
@@ -447,30 +448,50 @@ def calc_neck_load(inclination_angle_deg: float) -> float:
     return round(neck_load, 1)
 
 
-def calc_carbon_saved(session_seconds: float,
-                      bad_fraction: float,
-                      screen_watts: float = 12.0) -> float:
+def calc_max_slouch_duration(posture_log: list) -> str:
     """
-    Estimate kg CO2 saved during the session.
-
-    When ErgoGuard dims the screen on bad posture (or the user takes breaks),
-    active display energy is reduced by ~20 % proportional to good-posture time.
-
-        saved_Wh      = session_h * screen_watts * 0.20 * good_fraction
-        saved_kgCO2   = saved_Wh / 1000 * 0.475   (global avg grid factor)
+    Find the longest continuous duration of bad posture.
+    
+    Returns MM:SS format string.
+    
+    Args:
+        posture_log: List of (timestamp, angle, status) tuples
+    
+    Returns:
+        String in "MM:SS" format
     """
-    session_h     = session_seconds / 3600.0
-    good_fraction = max(0.0, 1.0 - bad_fraction)
-    saved_wh      = session_h * screen_watts * 0.20 * good_fraction
-    return round(saved_wh / 1000.0 * 0.475, 4)
+    max_durations = []
+    current_bad_start = None
+    
+    for i, entry in enumerate(posture_log):
+        status = entry[2] if len(entry) > 2 else "Good"
+        if status == "Bad":
+            if current_bad_start is None:
+                current_bad_start = i
+        else:
+            if current_bad_start is not None:
+                max_durations.append(i - current_bad_start)
+                current_bad_start = None
+    
+    # Include the last streak if session ended during slouch
+    if current_bad_start is not None:
+        max_durations.append(len(posture_log) - current_bad_start)
+    
+    max_frames = max(max_durations, default=0)
+    # Assume ~30 FPS framerate
+    frame_rate = 30
+    seconds = round(max_frames / frame_rate)
+    mins = seconds // 60
+    secs = seconds % 60
+    return f"{mins}:{secs:02d}"
 
 
 def health_grade(good_pct: float) -> str:
     """Lenient 3-level health grade  (A / B / F).
 
-    A  – good_pct >= 60%   Excellent posture
-    B  – good_pct >= 25%   Average / needs improvement
-    F  – good_pct  < 25%   Dangerous; mostly bad posture
+    A  ??good_pct >= 60%   Excellent posture
+    B  ??good_pct >= 25%   Average / needs improvement
+    F  ??good_pct  < 25%   Dangerous; mostly bad posture
     """
     if   good_pct >= 60: return "A"
     elif good_pct >= 25: return "B"
@@ -484,9 +505,9 @@ GRADE_COLOR = {
 }
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 #  MEDIAPIPE  INITIALISATION  (robust for all install variants)
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 def init_mediapipe():
     """Return (mp_drawing, mp_pose) or (None, None) when unavailable."""
     if not MP_OK:
@@ -503,11 +524,11 @@ def init_mediapipe():
     return None, None
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 #  CAMERA  INITIALISATION  (CAP_DSHOW for Windows stability)
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 def init_camera(index: int = 0):
-    print("[INFO] Opening camera …")
+    print("[INFO] Opening camera...")
     cap = cv2.VideoCapture(index, cv2.CAP_DSHOW)
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1280)
@@ -520,11 +541,11 @@ def init_camera(index: int = 0):
 
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  TKINTER  LAUNCHER  –  Wellness & Eco-Friendly Theme
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+#  TKINTER  LAUNCHER  ?? Wellness & Eco-Friendly Theme
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 
-# ── Palette ───────────────────────────────────────────────────────────────────
+# ?�?� Palette ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 _BG        = "#F4F9F4"   # soft mint off-white  (window background)
 _BG_HEADER = "#FFFFFF"   # pure white header panel
 _ACCENT    = "#2C5E3B"   # deep forest green  (titles, labels)
@@ -557,7 +578,7 @@ class LauncherApp:
         self.root.configure(bg=_BG)
         self._center_window(560, 530)
 
-        # ── Apply ttk styles BEFORE building widgets ──────────────────────────
+        # ?�?� Apply ttk styles BEFORE building widgets ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         style = ttk.Style()
         style.theme_use("clam")
         style.configure("TCombobox",
@@ -591,7 +612,7 @@ class LauncherApp:
                   background=[("active", _BG)],
                   foreground=[("active", _ACCENT)])
 
-        # ── Fonts ─────────────────────────────────────────────────────────────
+        # ?�?� Fonts ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         try:
             f_brand  = tkfont.Font(family="Segoe UI", size=20, weight="bold")
             f_sub    = tkfont.Font(family="Segoe UI", size=10)
@@ -609,9 +630,9 @@ class LauncherApp:
             f_button = ("Helvetica", 13, "bold")
             f_chk    = ("Helvetica", 11)
 
-        # ─────────────────────────────────────────────────────────────────────
+        # ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         #  HEADER  (white card with green left accent bar)
-        # ─────────────────────────────────────────────────────────────────────
+        # ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         header_outer = tk.Frame(self.root, bg=_BG, pady=0)
         header_outer.pack(fill="x", padx=0, pady=0)
 
@@ -626,7 +647,7 @@ class LauncherApp:
         title_row = tk.Frame(header_card, bg=_BG_HEADER)
         title_row.pack(anchor="w")
 
-        tk.Label(title_row, text="\U0001F33F",       # 🌿
+        tk.Label(title_row, text="\U0001F33F",       # ?��
                  bg=_BG_HEADER, fg=_BTN,
                  font=("Segoe UI Emoji", 20)).pack(side="left", padx=(0, 8))
 
@@ -644,14 +665,14 @@ class LauncherApp:
         # Thin separator under header
         tk.Frame(self.root, bg=_SEP, height=1).pack(fill="x")
 
-        # ─────────────────────────────────────────────────────────────────────
+        # ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         #  FORM  BODY
-        # ─────────────────────────────────────────────────────────────────────
+        # ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         body = tk.Frame(self.root, bg=_BG, padx=36)
         body.pack(fill="both", expand=True, pady=(30, 22))
         body.columnconfigure(1, weight=1)
 
-        # ── Row 0  :  Language ────────────────────────────────────────────────
+        # ?�?� Row 0  :  Language ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         self.lbl_lang = tk.Label(
             body, text="Language",
             bg=_BG, fg="#333333", font=f_label, anchor="w")
@@ -665,11 +686,11 @@ class LauncherApp:
                              pady=(0, 18), padx=(16, 0))
         self.lang_combo.bind("<<ComboboxSelected>>", self._on_lang_change)
 
-        # ── Divider ───────────────────────────────────────────────────────────
+        # ?�?� Divider ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         tk.Frame(body, bg=_SEP, height=1).grid(
             row=1, column=0, columnspan=2, sticky="ew", pady=(2, 18))
 
-        # ── Row 2  :  Interval slider ─────────────────────────────────────────
+        # ?�?� Row 2  :  Interval slider ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         self.lbl_interval = tk.Label(
             body, text="Reminder Interval (minutes)",
             bg=_BG, fg="#333333", font=f_label, anchor="w")
@@ -692,14 +713,14 @@ class LauncherApp:
             bg=_BG, fg=_VAL_FG, font=f_val, width=7)
         self.lbl_slider_val.pack(side="left", padx=(10, 0))
 
-        # ── Divider ───────────────────────────────────────────────────────────
+        # ?�?� Divider ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         tk.Frame(body, bg=_SEP, height=1).grid(
             row=3, column=0, columnspan=2, sticky="ew", pady=(2, 18))
 
-        # ── Row 4  :  Privacy checkbox ────────────────────────────────────────
+        # ?�?� Row 4  :  Privacy checkbox ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         self.chk_privacy = tk.Checkbutton(
             body,
-            text="Privacy Mode  —  Stickman skeleton only, no raw camera feed",
+            text="Privacy Mode  ?? Stickman skeleton only, no raw camera feed",
             variable=self.privacy_var,
             bg=_BG, fg="#333333",
             selectcolor="#FFFFFF",
@@ -710,8 +731,8 @@ class LauncherApp:
         self.chk_privacy.grid(row=4, column=0, columnspan=2,
                                sticky="w", pady=(0, 12))
 
-        # ── Row 5  :  Disclaimer note ─────────────────────────────────────────
-        note = ("Edge Computing: all AI runs locally — zero data leaves your device.\n"
+        # ?�?� Row 5  :  Disclaimer note ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+        note = ("Edge Computing: all AI runs locally ??zero data leaves your device.\n"
                 "Privacy Mode visualises joint geometry only, never your appearance.")
         self.lbl_info = tk.Label(
             body, text=note,
@@ -720,21 +741,21 @@ class LauncherApp:
         self.lbl_info.grid(row=5, column=0, columnspan=2,
                             sticky="w", pady=(0, 6))
 
-        # ─────────────────────────────────────────────────────────────────────
-        #  FOOTER  –  Start button
-        # ─────────────────────────────────────────────────────────────────────
+        # ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+        #  FOOTER  ?? Start button
+        # ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         tk.Frame(self.root, bg=_SEP, height=1).pack(fill="x")
 
         footer = tk.Frame(self.root, bg=_BG_HEADER, padx=36, pady=20)
         footer.pack(fill="x")
 
-        # Centred button row — both buttons in a self-centering sub-frame
+        # Centred button row ??both buttons in a self-centering sub-frame
         btn_row = tk.Frame(footer, bg=_BG_HEADER)
         btn_row.pack(anchor="center")
 
         self.btn_start = tk.Button(
             btn_row,
-            text="  \U0001F7E2  Start ErgoGuard  ",   # 🟢
+            text="  \U0001F7E2  Start ErgoGuard  ",   # ?��
             command=self._on_start,
             bg=_BTN, fg="white",
             activebackground=_BTN_HOV, activeforeground="white",
@@ -745,7 +766,7 @@ class LauncherApp:
             bd=0)
         self.btn_start.pack(side="left", ipadx=6, ipady=2)
 
-        # Reminders button — evenly spaced to the right of Start
+        # Reminders button ??evenly spaced to the right of Start
         self.btn_reminder = tk.Button(
             btn_row,
             text="  \U0001F514  Reminders  ",
@@ -768,7 +789,7 @@ class LauncherApp:
                  bg=_BG_HEADER, fg="#555555",
                  font=f_small).pack(pady=(10, 0))
 
-    # ── Internal helpers ──────────────────────────────────────────────────────
+    # ?�?� Internal helpers ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     def _center_window(self, w: int, h: int) -> None:
         self.root.update_idletasks()
         sw = self.root.winfo_screenwidth()
@@ -806,9 +827,9 @@ class LauncherApp:
         return self.settings
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  DAILY  REMINDER  MANAGER  –  Toplevel UI
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+#  DAILY  REMINDER  MANAGER  ?? Toplevel UI
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 
 # Category accent colours  (used in both the UI and the OpenCV overlay)
 _CAT_COLORS: dict[str, str] = {
@@ -854,15 +875,15 @@ class ReminderManagerUI:
         win.title(self._r["win_title"])
         win.configure(bg=_BG)
         win.resizable(False, False)
-        win.grab_set()          # modal – block launcher while open
+        win.grab_set()          # modal ??block launcher while open
         self._win = win
 
-        # ── Center on screen ─────────────────────────────────────────────────
+        # ?�?� Center on screen ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         win.update_idletasks()
         sw, sh = win.winfo_screenwidth(), win.winfo_screenheight()
         win.geometry(f"540x640+{(sw-540)//2}+{(sh-640)//2}")
 
-        # ── Font stack ───────────────────────────────────────────────────────
+        # ?�?� Font stack ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         _ff     = "Segoe UI"   # Tkinter falls back gracefully if unavailable
         f_title = (_ff, 13, "bold")
         f_lbl   = (_ff,  9, "bold")
@@ -870,7 +891,7 @@ class ReminderManagerUI:
         f_small = (_ff,  8)
         f_btn   = (_ff,  9, "bold")
 
-        # ── Green accent header bar ───────────────────────────────────────────
+        # ?�?� Green accent header bar ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         tk.Frame(win, bg=_ACCENT, height=4).pack(fill="x")
         hdr = tk.Frame(win, bg=_BG_HEADER, padx=22, pady=14)
         hdr.pack(fill="x")
@@ -878,13 +899,13 @@ class ReminderManagerUI:
                  text=f"\U0001F514  {self._r['win_title']}",
                  bg=_BG_HEADER, fg=_ACCENT, font=f_title).pack(anchor="w")
 
-        # ── INPUT PANEL ───────────────────────────────────────────────────────
+        # ?�?� INPUT PANEL ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         tk.Frame(win, bg=_SEP, height=1).pack(fill="x")
         inp = tk.Frame(win, bg=_BG, padx=22, pady=16)
         inp.pack(fill="x")
         inp.columnconfigure(1, weight=1)
 
-        # Row 0 – Task name entry
+        # Row 0 ??Task name entry
         tk.Label(inp, text=self._r["name_ph"].rstrip("\u2026"),
                  bg=_BG, fg=_ACCENT, font=f_lbl
                  ).grid(row=0, column=0, sticky="w", pady=(0, 4))
@@ -905,7 +926,7 @@ class ReminderManagerUI:
         self._name_entry.bind("<FocusOut>",
                               lambda e: self._ph_focus_out(self._name_entry))
 
-        # Row 1 – Time picker (HH spinbox  :  MM spinbox)
+        # Row 1 ??Time picker (HH spinbox  :  MM spinbox)
         tk.Label(inp, text=self._r["time_lbl"],
                  bg=_BG, fg=_ACCENT, font=f_lbl
                  ).grid(row=1, column=0, sticky="w", pady=(10, 4))
@@ -925,7 +946,7 @@ class ReminderManagerUI:
         tk.Spinbox(time_frm, from_=0, to=59, format="%02.0f",
                    textvariable=self._min_var, **_sp).pack(side="left")
 
-        # Row 2 – Category colour radio row
+        # Row 2 ??Category colour radio row
         tk.Label(inp, text=self._r["cat_lbl"],
                  bg=_BG, fg=_ACCENT, font=f_lbl
                  ).grid(row=2, column=0, sticky="nw", pady=(10, 4))
@@ -958,7 +979,7 @@ class ReminderManagerUI:
                 cursor="hand2",
             ).pack(side="left")
 
-        # Row 3 – Add button
+        # Row 3 ??Add button
         tk.Button(
             inp,
             text=self._r["add_btn"],
@@ -969,12 +990,12 @@ class ReminderManagerUI:
             padx=18, pady=8, cursor="hand2", bd=0,
         ).grid(row=3, column=0, columnspan=4, sticky="w", pady=(14, 2))
 
-        # ── REMINDER LIST ─────────────────────────────────────────────────────
+        # ?�?� REMINDER LIST ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         tk.Frame(win, bg=_SEP, height=1).pack(fill="x")
         list_outer = tk.Frame(win, bg=_BG, padx=22, pady=12)
         list_outer.pack(fill="both", expand=True)
 
-        # ttk.Treeview – columns: time | name | category
+        # ttk.Treeview ??columns: time | name | category
         style = ttk.Style()
         style.theme_use("default")
         style.configure("Rem.Treeview",
@@ -1017,7 +1038,7 @@ class ReminderManagerUI:
             list_outer, text=self._r["no_items"],
             bg=_BG, fg=_MUTED, font=f_small)
 
-        # ── ACTION BAR (Done / Delete) ────────────────────────────────────────
+        # ?�?� ACTION BAR (Done / Delete) ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
         tk.Frame(win, bg=_SEP, height=1).pack(fill="x")
         act = tk.Frame(win, bg=_BG_HEADER, padx=22, pady=10)
         act.pack(fill="x")
@@ -1037,7 +1058,7 @@ class ReminderManagerUI:
 
         self._refresh_list()
 
-    # ── Placeholder helpers ───────────────────────────────────────────────────
+    # ?�?� Placeholder helpers ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     def _ph_focus_in(self, entry: tk.Entry) -> None:
         if entry.get() == self._name_placeholder:
             entry.delete(0, "end")
@@ -1048,7 +1069,7 @@ class ReminderManagerUI:
             entry.insert(0, self._name_placeholder)
             entry.config(fg=_MUTED)
 
-    # ── CRUD helpers ──────────────────────────────────────────────────────────
+    # ?�?� CRUD helpers ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     def _on_add(self) -> None:
         name = self._name_var.get().strip()
         if not name or name == self._name_placeholder:
@@ -1103,27 +1124,27 @@ class ReminderManagerUI:
             self._lbl_empty.place(relx=0.5, rely=0.5, anchor="center")
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  MATPLOTLIB  REPORT  –  Donut chart  +  Health Grade  +  ESG footer
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+#  MATPLOTLIB  REPORT  ?? Donut chart  +  Health Grade  +  ESG footer
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 def generate_report(posture_log: list, session_start: float,
                     language: str = "English") -> None:
     """Save ErgoGuard_Report.png then open it with the system viewer.
 
     Fixes & enhancements vs. original:
-    - CJK font stack prevents □-boxes for Chinese / Japanese / Korean text.
+    - CJK font stack prevents ??boxes for Chinese / Japanese / Korean text.
     - All chart text is fully localised via the TRANSLATIONS dict.
     - Lenient A / B / F grading with contextual feedback message.
     - plt.savefig wrapped in try/finally so plt.close() always runs.
     """
     if not MPL_OK:
-        print("[WARN] matplotlib unavailable – skipping report.")
+        print("[WARN] matplotlib unavailable ??skipping report.")
         return
     if not posture_log:
-        print("[WARN] No posture data – skipping report.")
+        print("[WARN] No posture data ??skipping report.")
         return
 
-    # ── CJK / Unicode font stack ──────────────────────────────────────────────
+    # ?�?� CJK / Unicode font stack ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     # Tries system fonts in order; matplotlib falls back gracefully if absent.
     plt.rcParams["font.sans-serif"] = [
         "Microsoft YaHei", "SimHei", "Noto Sans CJK SC",
@@ -1133,7 +1154,7 @@ def generate_report(posture_log: list, session_start: float,
 
     t = TRANSLATIONS.get(language, TRANSLATIONS["English"])
 
-    # ── Compute stats ─────────────────────────────────────────────────────────
+    # ?�?� Compute stats ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     statuses  = [e[2] for e in posture_log]
     angles    = [e[1] for e in posture_log]
     good_n    = sum(1 for s in statuses if s == "Good")
@@ -1144,7 +1165,7 @@ def generate_report(posture_log: list, session_start: float,
     grade     = health_grade(good_pct)
     grade_col = GRADE_COLOR[grade]
 
-    # ── Localised feedback sentence for the grade ─────────────────────────────
+    # ?�?� Localised feedback sentence for the grade ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     _fb_defaults = {
         "A": "Excellent!  Keep it up.",
         "B": "Average.  Try to sit straight more often to protect your spine.",
@@ -1160,9 +1181,9 @@ def generate_report(posture_log: list, session_start: float,
     avg_neck   = (sum(neck_loads) / len(neck_loads)) if neck_loads else 4.5
 
     bad_frac  = bad_n / present_n if present_n > 0 else 0.5
-    co2_g     = calc_carbon_saved(session_secs, bad_frac) * 1000.0
+    max_slouch_time = calc_max_slouch_duration(posture_log)
 
-    # ── Figure ────────────────────────────────────────────────────────────────
+    # ?�?� Figure ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     fig = plt.figure(figsize=(14, 8), facecolor="#1A1A2E")
     gs  = fig.add_gridspec(2, 3,
                            height_ratios=[5, 1],
@@ -1180,7 +1201,7 @@ def generate_report(posture_log: list, session_start: float,
         for sp in ax.spines.values():
             sp.set_edgecolor("#2C3E50")
 
-    # ── (a) Donut chart ───────────────────────────────────────────────────────
+    # ?�?� (a) Donut chart ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     sizes  = [good_pct, 100.0 - good_pct] if present_n > 0 else [50, 50]
     colors = ["#2ECC71", "#E74C3C"]
 
@@ -1193,7 +1214,7 @@ def generate_report(posture_log: list, session_start: float,
                                  linewidth=2),
                  shadow=True)
 
-    # ── (b) Content in the donut hole ─────────────────────────────────────────
+    # ?�?� (b) Content in the donut hole ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     ax_donut.text(0,  0.22, grade,
                   ha="center", va="center",
                   fontsize=72, fontweight="bold",
@@ -1225,7 +1246,7 @@ def generate_report(posture_log: list, session_start: float,
                        color="white", fontsize=15,
                        fontweight="bold", pad=14)
 
-    # ── Stats table (fully localised) ─────────────────────────────────────────
+    # ?�?� Stats table (fully localised) ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     ax_stats.axis("off")
     rows = [
         (t.get("session_time",   "Session Time"),   f"{session_mins:.1f} min"),
@@ -1235,7 +1256,7 @@ def generate_report(posture_log: list, session_start: float,
         (t.get("good_pct_label", "Good Posture %"),  f"{good_pct:.1f} %"),
         (t["grade_label"],                           grade),
         (t["neck_avg"],                              f"{avg_neck:.1f} kg"),
-        (t["carbon_label"],                          f"{co2_g:.3f} g CO2"),
+        (t["carbon_label"],                          max_slouch_time),
     ]
     for i, (label, value) in enumerate(rows):
         y  = 0.95 - i * 0.115
@@ -1251,15 +1272,15 @@ def generate_report(posture_log: list, session_start: float,
                        color="white", fontsize=12,
                        fontweight="bold", pad=10)
 
-    # ── (c) ESG footer (localised) ────────────────────────────────────────────
+    # ?�?� (c) ESG footer (localised) ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     ax_footer.axis("off")
     ax_footer.axhline(y=0.95, color="#2C3E50", linewidth=1,
                       xmin=0.02, xmax=0.98)
     footer_txt = (
-        f"  [ESG]  {t['carbon_label']}: {co2_g:.3f} g CO2"
+        f"  [Metrics]  {t['carbon_label']}: {max_slouch_time}"
         f"   |   [Health]  {t['neck_avg']}: {avg_neck:.1f} kg"
         f"   |   {t.get('session_time', 'Session')}: {session_mins:.1f} min"
-        f"   |   ErgoGuard International – MediaPipe + OpenCV"
+        f"   |   ErgoGuard International ??MediaPipe + OpenCV"
     )
     ax_footer.text(0.5, 0.50, footer_txt,
                    ha="center", va="center",
@@ -1270,13 +1291,13 @@ def generate_report(posture_log: list, session_start: float,
         f"ErgoGuard International  ·  {t.get('session_stats', 'Session Analytics')}",
         color="#E94560", fontsize=17, fontweight="bold", y=0.97)
 
-    # ── Save & open ───────────────────────────────────────────────────────────
+    # ?�?� Save & open ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                             "ErgoGuard_Report.png")
     try:
         plt.savefig(out_path, dpi=150, bbox_inches="tight",
                     facecolor=fig.get_facecolor())
-        print(f"[INFO] Report saved  →  {out_path}")
+        print(f"[INFO] Report saved  ?? {out_path}")
     except Exception as exc:
         print(f"[ERROR] Could not save report: {exc}")
         return
@@ -1293,9 +1314,9 @@ def generate_report(posture_log: list, session_start: float,
         print(f"[WARN] Could not auto-open report: {exc}")
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 #  HUD  OVERLAY
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 def draw_hud(frame: "np.ndarray",
              status_text: str,
              angle: float,
@@ -1351,15 +1372,15 @@ def draw_hud(frame: "np.ndarray",
                 cv2.FONT_HERSHEY_SIMPLEX, 0.46, (90, 90, 90), 1, cv2.LINE_AA)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 #  POSTURE  ANALYSER
-# ──────────────────────────────────────────────────────────────────────────────
-# ── Posture thresholds (tuned for natural sitting tolerance) ──────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+# ?�?� Posture thresholds (tuned for natural sitting tolerance) ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 # Raised to reduce false positives from minor, natural body shifts.
-_SHOULDER_Y_DIFF = 0.12   # was 0.08 – allows ~30% more shoulder height asymmetry
-_EAR_FWD_RATIO   = 0.50   # was 0.40 – more tolerant of slight head-forward lean
-_EAR_LOW_REL_SHD = 0.12   # was 0.09 – ignores small downward ear drift
-_INCLINE_THRESH  = 140.0  # was 145° – needs more pronounced forward lean to flag
+_SHOULDER_Y_DIFF = 0.12   # was 0.08 ??allows ~30% more shoulder height asymmetry
+_EAR_FWD_RATIO   = 0.50   # was 0.40 ??more tolerant of slight head-forward lean
+_EAR_LOW_REL_SHD = 0.12   # was 0.09 ??ignores small downward ear drift
+_INCLINE_THRESH  = 140.0  # was 145° ??needs more pronounced forward lean to flag
 # Only flag bad posture after this many consecutive bad frames (~0.3 s @ 30 fps)
 _BAD_STREAK_REQUIRED = 10
 
@@ -1404,13 +1425,13 @@ def analyse_landmarks(lm_list, w: int, h: int):
     if not ls or not rs or not ls[2] or not rs[2]:
         return posture_bad, inclination, coords
 
-    # Condition A – uneven shoulders
+    # Condition A ??uneven shoulders
     if abs(ls[1] - rs[1]) > _SHOULDER_Y_DIFF:
         posture_bad = True
 
     sh_w = abs(ls[0] - rs[0])
 
-    # Condition B – ear forward/low relative to shoulder
+    # Condition B ??ear forward/low relative to shoulder
     for (ear_i, sh_x, sh_y) in ((7, ls[0], ls[1]), (8, rs[0], rs[1])):
         ear = get(ear_i)
         if ear and ear[2]:
@@ -1419,7 +1440,7 @@ def analyse_landmarks(lm_list, w: int, h: int):
             if ear[1] - sh_y > _EAR_LOW_REL_SHD:
                 posture_bad = True
 
-    # Condition C – inclination angle (both sides, take worst)
+    # Condition C ??inclination angle (both sides, take worst)
     angles_calc = []
     for (ei, si, hi) in ((7, 11, 23), (8, 12, 24)):
         ear = get(ei); sh = get(si); hip = get(hi)
@@ -1436,9 +1457,9 @@ def analyse_landmarks(lm_list, w: int, h: int):
     return posture_bad, inclination, coords
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 #  PRIVACY  STICKMAN  DRAWING
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 _SKELETON = [
     (0,1),(1,2),(2,3),(3,7),(0,4),(4,5),(5,6),(6,8),(9,10),
     (11,12),(11,23),(12,24),(23,24),
@@ -1461,9 +1482,9 @@ def draw_stickman(canvas: "np.ndarray", coords: dict, bad: bool) -> None:
         cv2.circle(canvas, pt, r, jc, -1, cv2.LINE_AA)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 #  SCREEN  BRIGHTNESS  (ESG feedback)
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 _orig_brightness: int  = 100
 _brightness_set:  bool = False
 
@@ -1495,9 +1516,9 @@ def restore_brightness() -> None:
     _brightness_set = False
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 #  MAIN  DETECTION  LOOP
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 def run_detection(settings: dict) -> None:
     language      = settings.get("language",  "English")
     interval_mins = settings.get("interval",  60)
@@ -1528,7 +1549,7 @@ def run_detection(settings: dict) -> None:
           f"|  Interval: {interval_mins} min  |  Privacy: {privacy_mode}")
     print(f"[INFO] Press  Q  or ESC  in the video window to quit.\n")
 
-    # ── Inner loop (called with or without pose context) ──────────────────────
+    # ?�?� Inner loop (called with or without pose context) ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     def loop(pose_ctx=None):
         nonlocal break_msg_until, reminder_at, daily_alert_until, daily_alert_text, _bad_streak
 
@@ -1541,7 +1562,7 @@ def run_detection(settings: dict) -> None:
             h_f, w_f = raw.shape[:2]
             now       = time.time()
 
-            # ── Smart Video Reminder ──────────────────────────────────────────
+            # ?�?� Smart Video Reminder ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
             if now >= reminder_at:
                 url = EXERCISE_VIDEOS.get(language, EXERCISE_VIDEOS["English"])
                 print(f"[BREAK] {t['break_msg']}")
@@ -1550,7 +1571,7 @@ def run_detection(settings: dict) -> None:
                 break_msg_until = now + 9.0
                 reminder_at     = now + interval_mins * 60.0  # schedule next
 
-            # ── Pose processing ───────────────────────────────────────────────
+            # ?�?� Pose processing ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
             inclination = 180.0
             posture_bad = False
             coords      = {}
@@ -1568,7 +1589,7 @@ def run_detection(settings: dict) -> None:
                     lm_list = result.pose_landmarks.landmark
                     _raw_bad, inclination, coords = \
                         analyse_landmarks(lm_list, w_f, h_f)
-                    # ── Temporal smoothing: only flag after N consecutive frames ──
+                    # ?�?� Temporal smoothing: only flag after N consecutive frames ?�?�
                     if _raw_bad:
                         _bad_streak += 1
                     else:
@@ -1576,14 +1597,14 @@ def run_detection(settings: dict) -> None:
                     posture_bad = _bad_streak >= _BAD_STREAK_REQUIRED
                     status_text = t["bad"] if posture_bad else t["good"]
 
-            # ── Build display frame ───────────────────────────────────────────
+            # ?�?� Build display frame ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
             if privacy_mode:
-                # ─── PRIVACY MODE: black canvas + stickman ONLY ───────────────
+                # ?�?�?� PRIVACY MODE: black canvas + stickman ONLY ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
                 display = np.zeros((h_f, w_f, 3), dtype=np.uint8)
                 if coords:
                     draw_stickman(display, coords, posture_bad)
             else:
-                # ─── NORMAL MODE: raw feed + skeleton overlay ─────────────────
+                # ?�?�?� NORMAL MODE: raw feed + skeleton overlay ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
                 display = raw.copy()
                 if use_mp and result is not None and result.pose_landmarks:
                     try:
@@ -1599,16 +1620,16 @@ def run_detection(settings: dict) -> None:
                     except Exception:
                         draw_stickman(display, coords, posture_bad)
 
-            # ── ESG: screen brightness feedback ──────────────────────────────
+            # ?�?� ESG: screen brightness feedback ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
             apply_brightness_feedback(posture_bad)
 
-            # ── HUD ───────────────────────────────────────────────────────────
+            # ?�?� HUD ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
             neck_load = calc_neck_load(inclination)
             remaining = max(0.0, reminder_at - now)
             draw_hud(display, status_text, inclination,
                      neck_load, remaining, language, privacy_mode)
 
-            # ── Break overlay (8 s after reminder fires) ──────────────────────
+            # ?�?� Break overlay (8 s after reminder fires) ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
             if now < break_msg_until:
                 msg = t["break_msg"]
                 (mw, mh), _ = cv2.getTextSize(
@@ -1623,7 +1644,7 @@ def run_detection(settings: dict) -> None:
                             cv2.FONT_HERSHEY_DUPLEX, 0.80,
                             (80, 240, 80), 2, cv2.LINE_AA)
 
-            # ── Daily Reminder check ──────────────────────────────────────────
+            # ?�?� Daily Reminder check ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
             # Compare wall-clock HH:MM against every undone reminder once.
             _lt = time.localtime(now)
             for _rem in DAILY_REMINDERS:
@@ -1638,7 +1659,7 @@ def run_detection(settings: dict) -> None:
                     daily_alert_until = max(daily_alert_until, now + 9.0)
                     print(f"[REMINDER] {_rem['hour']:02d}:{_rem['minute']:02d}  "
                           f"{_rem['name']}  [{_rem['category']}]")
-                    # ── Native OS Toast Notification (non-blocking) ───────────
+                    # ?�?� Native OS Toast Notification (non-blocking) ?�?�?�?�?�?�?�?�?�?�?�
                     _rem_snap = dict(_rem)   # capture values for the thread
                     def _toast(_r=_rem_snap):
                         if PLYER_OK and _plyer_notify is not None:
@@ -1656,7 +1677,7 @@ def run_detection(settings: dict) -> None:
                                   f"{_r['hour']:02d}:{_r['minute']:02d}  {_r['name']}")
                     threading.Thread(target=_toast, daemon=True).start()
 
-            # ── Daily Reminder overlay ────────────────────────────────────────
+            # ?�?� Daily Reminder overlay ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
             if now < daily_alert_until and daily_alert_text:
                 _cat  = "Health"  # default colour for reminder overlay
                 for _r2 in DAILY_REMINDERS:
@@ -1681,7 +1702,7 @@ def run_detection(settings: dict) -> None:
                             cv2.FONT_HERSHEY_DUPLEX, 0.80,
                             _bgr, 2, cv2.LINE_AA)
 
-            # ── Log ───────────────────────────────────────────────────────────
+            # ?�?� Log ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
             ps = ("Absent" if status_text in (t["absent"], t["partial"])
                   else ("Bad" if posture_bad else "Good"))
             posture_log.append((now, inclination, ps))
@@ -1691,7 +1712,7 @@ def run_detection(settings: dict) -> None:
             if key in (ord("q"), ord("Q"), 27):
                 break
 
-    # ── Run ───────────────────────────────────────────────────────────────────
+    # ?�?� Run ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
     try:
         if use_mp:
             with mp_pose.Pose(min_detection_confidence=0.35,
@@ -1699,20 +1720,20 @@ def run_detection(settings: dict) -> None:
                               model_complexity=1) as pose_ctx:
                 loop(pose_ctx)
         else:
-            print("[WARN] MediaPipe unavailable – running in camera-only mode.")
+            print("[WARN] MediaPipe unavailable ??running in camera-only mode.")
             loop(pose_ctx=None)
     finally:
         restore_brightness()
         cap.release()
         cv2.destroyAllWindows()
 
-    print("\n[INFO] Session ended – generating report …")
+    print("\n[INFO] Session ended - generating report...")
     generate_report(posture_log, session_start, language)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 #  ENTRY  POINT
-# ──────────────────────────────────────────────────────────────────────────────
+# ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 def main():
     settings = {}
 
@@ -1721,7 +1742,7 @@ def main():
         app      = LauncherApp(root)
         settings = app.run()          # blocks until user clicks Start
     else:
-        print("[INFO] Tkinter unavailable – using default settings.")
+        print("[INFO] Tkinter unavailable ??using default settings.")
         settings = {"language": "English", "interval": 60, "privacy": False}
 
     if not settings:
@@ -1733,4 +1754,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-oninput="…this.value+' '+(t.min_unit||'min')"
+oninput="?�this.value+' '+(t.min_unit||'min')"
