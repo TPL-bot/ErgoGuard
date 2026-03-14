@@ -264,14 +264,19 @@
 
       <div class="sep"></div>
 
-      <!-- Interval slider -->
+      <!-- Interval slider (clean UI for regular users) -->
       <div>
         <div class="flex justify-between items-center mb-2">
           <label id="lbl-interval" class="form-label mb-0">Reminder Interval (minutes)</label>
           <span id="lbl-interval-val" class="text-sm font-bold text-[var(--accent)]">60 min</span>
         </div>
-        <input type="range" id="slider-interval" min="15" max="120" value="60"
-               oninput="document.getElementById('lbl-interval-val').textContent=this.value+' '+(t.min_unit||'min')">
+        <input type="range" id="slider-interval" min="15" max="120" value="60" step="15"
+               oninput="updateIntervalDisplay(this.value)">
+      </div>
+
+      <div id="dev-panel" class="hidden mt-3 p-2 bg-gray-800 border border-gray-600 rounded flex justify-center gap-2">
+        <button id="btn-demo-10s" class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-500 font-bold">10s Demo</button>
+        <button id="btn-demo-60s" class="px-2 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-500 font-bold">1m Test</button>
       </div>
 
       <div class="sep"></div>
@@ -461,6 +466,37 @@
 
 
 <!-- ════════════════════════════════════════════════════════════════════════
+     BREAK REMINDER MODAL (with multilingual media)
+════════════════════════════════════════════════════════════════════════ -->
+<div id="modal-break-reminder" class="modal-backdrop hidden" onclick="if(event.target===this)closeBreakReminder()">
+  <div class="card w-full max-w-2xl mx-4 overflow-hidden p-0 max-h-[90vh] flex flex-col">
+    <div class="accent-strip"></div>
+    <div class="p-6 overflow-y-auto flex-1">
+      <div class="flex items-center gap-2 mb-5">
+        <span class="text-3xl">⏰</span>
+        <h3 id="break-modal-title" class="text-lg font-extrabold text-[var(--accent)]">Time for a Break!</h3>
+      </div>
+
+      <!-- Stretch image and actions -->
+      <div id="break-media-container" class="w-full mb-5 rounded-lg overflow-hidden">
+        <!-- Image will be dynamically injected here -->
+      </div>
+
+      <!-- Stretch title and actions list -->
+      <div id="break-stretch-content" class="w-full mb-4">
+        <!-- Title and actions will be dynamically injected here -->
+      </div>
+    </div>
+
+    <div class="border-t border-[var(--sep)] p-4 flex justify-end gap-3">
+      <button id="btn-break-close" class="btn-outline" onclick="closeBreakReminder()">Skip</button>
+      <button id="btn-break-continue" class="btn-primary" onclick="startBreakTimer()">Start 2-Min Rest</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
      JAVASCRIPT
 ════════════════════════════════════════════════════════════════════════ -->
 <script>
@@ -470,7 +506,7 @@
 const T = {
   "English": {
     title:"ErgoGuard International",subtitle:"AI Posture & Wellness Guardian",
-    language:"Language",interval:"Reminder Interval (minutes)",
+    language:"Language",interval:"Reminder Interval",
     privacy:"Privacy Mode — Stickman Only",start:"Start ErgoGuard",
     good:"Good Posture ✓",bad:"Bad Posture ⚠",absent:"No Person Detected",
     angle:"Neck Angle",neck_load:"Neck Load",
@@ -489,10 +525,11 @@ const T = {
     cat_work:"Work",cat_health:"Health",cat_break:"Break",cat_urgent:"Urgent",
     time_lbl:"Time (HH:MM)",cat_lbl:"Category",name_lbl:"Task name",
     name_ph:"e.g. Drink water",modal_close:"Close",privacy_hint:"All AI runs locally \u2014 zero data leaves your device.",disclaimer:"Edge Computing: all AI runs locally \u2014 zero data leaves your device. Privacy Mode visualises joint geometry only, never your appearance.",min_unit:"min",
+    demo_10s:"10 sec (Demo Fast)",demo_60s:"1 min (Dev Test)",
   },
   "繁體中文": {
     title:"ErgoGuard 國際版",subtitle:"AI 姿勢與健康守護者",
-    language:"語言",interval:"提醒間隔（分鐘）",
+    language:"語言",interval:"提醒間隔",
     privacy:"隱私模式（僅顯示骨架）",start:"啟動 ErgoGuard",
     good:"姿勢良好 ✓",bad:"姿勢不良 ⚠",absent:"未偵測到人員",
     angle:"頸部角度",neck_load:"頸部負荷",
@@ -511,10 +548,11 @@ const T = {
     cat_work:"工作",cat_health:"健康",cat_break:"休息",cat_urgent:"緊急",
     time_lbl:"時間 (HH:MM)",cat_lbl:"類別",name_lbl:"任務名稱",
     name_ph:"例：喝水",modal_close:"關閉",privacy_hint:"所有 AI 均在本地運行，零資料離開您的裝置。",disclaimer:"邊緣運算：所有 AI 均在本地運行，零資料離開您的裝置。隱私模式僅顯示關節幾何，不顯示您的外觀。",min_unit:"分鐘",max_slouch_label:"最長連續駝背時間",
+    demo_10s:"10 秒 (Demo 快速展示)",demo_60s:"1 分鐘 (開發者測試)",
   },
   "Español": {
     title:"ErgoGuard Internacional",subtitle:"Guardián de Postura y Bienestar con IA",
-    language:"Idioma",interval:"Intervalo de Recordatorio (minutos)",
+    language:"Idioma",interval:"Intervalo de Recordatorio",
     privacy:"Modo Privacidad — Solo Contorno",start:"Iniciar ErgoGuard",
     good:"Buena Postura ✓",bad:"Mala Postura ⚠",absent:"Persona No Detectada",
     angle:"Ángulo del Cuello",neck_load:"Carga del Cuello",
@@ -533,10 +571,11 @@ const T = {
     cat_work:"Trabajo",cat_health:"Salud",cat_break:"Descanso",cat_urgent:"Urgente",
     time_lbl:"Hora (HH:MM)",cat_lbl:"Categoría",name_lbl:"Nombre de la tarea",
     name_ph:"ej. Tomar agua",modal_close:"Cerrar",privacy_hint:"Toda la IA se ejecuta localmente — cero datos abandonan tu dispositivo.",disclaimer:"Edge Computing: toda la IA se ejecuta localmente. El modo privacidad solo muestra geometría corporal.",min_unit:"min",
+    demo_10s:"10 seg (Demo Rápido)",demo_60s:"1 min (Prueba Dev)",
   },
   "日本語": {
     title:"ErgoGuard インターナショナル",subtitle:"AI 姿勢・健康ガーディアン",
-    language:"言語",interval:"リマインダー間隔（分）",
+    language:"言語",interval:"リマインダー間隔",
     privacy:"プライバシーモード（スケルトン表示のみ）",start:"ErgoGuard を開始",
     good:"姿勢良好 ✓",bad:"姿勢不良 ⚠",absent:"人物未検出",
     angle:"首の角度",neck_load:"首の負荷",
@@ -555,10 +594,11 @@ const T = {
     cat_work:"仕事",cat_health:"健康",cat_break:"休憩",cat_urgent:"緊急",
     time_lbl:"時刻 (HH:MM)",cat_lbl:"カテゴリ",name_lbl:"タスク名",
     name_ph:"例：水を飲む",modal_close:"閉じる",privacy_hint:"すべての AI はローカルで動作します — データは一切外部に送信されません。",disclaimer:"エッジコンピューティング：すべての AI がローカルで動作します。プライバシーモードは骨格幾何のみを表示します。",min_unit:"分",
+    demo_10s:"10 秒 (デモ高速)",demo_60s:"1 分 (開発者テスト)",
   },
   "한국어": {
     title:"ErgoGuard 인터내셔널",subtitle:"AI 자세 & 건강 수호자",
-    language:"언어",interval:"알림 간격 (분)",
+    language:"언어",interval:"알림 간격",
     privacy:"프라이버시 모드  (윤곽선만 표시)",start:"ErgoGuard 시작",
     good:"좋은 자세 ✓",bad:"나쁜 자세 ⚠",absent:"사람 미감지",
     angle:"목 각도",neck_load:"목 부하",
@@ -577,10 +617,11 @@ const T = {
     cat_work:"업무",cat_health:"건강",cat_break:"휴식",cat_urgent:"긴급",
     time_lbl:"시간 (HH:MM)",cat_lbl:"카테고리",name_lbl:"작업 이름",
     name_ph:"예: 물 마시기",modal_close:"닫기",privacy_hint:"모든 AI는 로컈에서 실행됩니다 — 데이터가 기기를 떠나지 않습니다.",disclaimer:"엳지 컴퓨팅: 모든 AI가 로컈에서 실행됩니다. 프라이버시 모드는 관절 기하학만 시각화합니다.",min_unit:"분",
+    demo_10s:"10 초 (데모 빠른)",demo_60s:"1 분 (개발자 테스트)",
   },
   "Français": {
     title:"ErgoGuard International",subtitle:"Gardien de Posture & Bien-être par IA",
-    language:"Langue",interval:"Intervalle de Rappel (minutes)",
+    language:"Langue",interval:"Intervalle de Rappel",
     privacy:"Mode Confidentialité — Squelette Seulement",start:"Démarrer ErgoGuard",
     good:"Bonne Posture ✓",bad:"Mauvaise Posture ⚠",absent:"Aucune Personne Détectée",
     angle:"Angle du Cou",neck_load:"Charge du Cou",
@@ -602,7 +643,7 @@ const T = {
   },
   "Deutsch": {
     title:"ErgoGuard International",subtitle:"KI-Haltungs- & Gesundheitswächter",
-    language:"Sprache",interval:"Erinnerungsintervall (Minuten)",
+    language:"Sprache",interval:"Erinnerungsintervall",
     privacy:"Datenschutzmodus — Nur Skelett",start:"ErgoGuard Starten",
     good:"Gute Haltung ✓",bad:"Schlechte Haltung ⚠",absent:"Keine Person Erkannt",
     angle:"Nackenwinkel",neck_load:"Nackenlast",
@@ -621,10 +662,11 @@ const T = {
     cat_work:"Arbeit",cat_health:"Gesundheit",cat_break:"Pause",cat_urgent:"Dringend",
     time_lbl:"Zeit (HH:MM)",cat_lbl:"Kategorie",name_lbl:"Aufgabenname",
     name_ph:"z.B. Wasser trinken",modal_close:"Schlie\u00dfen",privacy_hint:"Alle KI l\u00e4uft lokal \u2014 keine Daten verlassen dein Ger\u00e4t.",disclaimer:"Edge Computing: die gesamte KI l\u00e4uft lokal. Der Datenschutzmodus zeigt nur Gelenkgeometrie, nie dein Aussehen.",min_unit:"Min",
+    demo_10s:"10 Sek (Demo Schnell)",demo_60s:"1 Min (Dev Test)",
   },
   "Русский": {
     title:"ErgoGuard Интернэшнл",subtitle:"ИИ-страж осанки и здоровья",
-    language:"Язык",interval:"Интервал напоминания (мин.)",
+    language:"Язык",interval:"Интервал напоминания",
     privacy:"Режим конфиденциальности — Только скелет",start:"Запустить ErgoGuard",
     good:"Правильная осанка ✓",bad:"Неправильная осанка ⚠",absent:"Человек не обнаружен",
     angle:"Угол шеи",neck_load:"Нагрузка на шею",
@@ -643,10 +685,11 @@ const T = {
     cat_work:"Работа",cat_health:"Здоровье",cat_break:"Перерыв",cat_urgent:"Срочно",
     time_lbl:"Время (HH:MM)",cat_lbl:"Категория",name_lbl:"Название задачи",
     name_ph:"напр. Выпить воды",modal_close:"Закрыть",privacy_hint:"Весь ИИ работает локально — данные не покидают ваше устройство.",disclaimer:"Edge Computing: весь ИИ работает локально. Режим конфиденциальности отображает только геометрию суставов.",min_unit:"мин",
+    demo_10s:"10 сек (Демо Быстро)",demo_60s:"1 мин (Тест Разработки)",
   },
   "Português": {
     title:"ErgoGuard Internacional",subtitle:"Guardião de Postura e Bem-Estar com IA",
-    language:"Idioma",interval:"Intervalo de Lembrete (minutos)",
+    language:"Idioma",interval:"Intervalo de Lembrete",
     privacy:"Modo Privacidade — Apenas Contorno",start:"Iniciar ErgoGuard",
     good:"Boa Postura ✓",bad:"Má Postura ⚠",absent:"Nenhuma Pessoa Detectada",
     angle:"Ângulo do Pescoço",neck_load:"Carga do Pescoço",
@@ -665,10 +708,11 @@ const T = {
     cat_work:"Trabalho",cat_health:"Saúde",cat_break:"Pausa",cat_urgent:"Urgente",
     time_lbl:"Hora (HH:MM)",cat_lbl:"Categoria",name_lbl:"Nome da tarefa",
     name_ph:"ex. Beber \u00e1gua",modal_close:"Fechar",privacy_hint:"Toda a IA \u00e9 executada localmente \u2014 zero dados saem do seu dispositivo.",disclaimer:"Edge Computing: toda a IA \u00e9 executada localmente. O modo privacidade visualiza apenas a geometria articular.",min_unit:"min",
+    demo_10s:"10 seg (Demo Rápido)",demo_60s:"1 min (Teste Dev)",
   },
   "العربية": {
     title:"ErgoGuard الدولية",subtitle:"حارس الوضعية والصحة بالذكاء الاصطناعي",
-    language:"اللغة",interval:"فترة التذكير (دقيقة)",
+    language:"اللغة",interval:"فترة التذكير",
     privacy:"وضع الخصوصية — هيكل عظمي فقط",start:"تشغيل ErgoGuard",
     good:"وضعية جيدة ✓",bad:"وضعية سيئة ⚠",absent:"لم يتم اكتشاف أي شخص",
     angle:"زاوية الرقبة",neck_load:"حمل الرقبة",
@@ -687,21 +731,102 @@ const T = {
     cat_work:"عمل",cat_health:"صحة",cat_break:"استراحة",cat_urgent:"عاجل",
     time_lbl:"الوقت (HH:MM)",cat_lbl:"الفئة",name_lbl:"اسم المهمة",
     name_ph:"مثال: اشرب الماء",modal_close:"إغلاق",privacy_hint:"يعمل الذكاء الاصطناعي محليًا — لا تغادر البيانات جهازك.",disclaimer:"الحوسبة الطرفية: يعمل الذكاء الاصطناعي محليًا. وضع الخصوصية يُظهر هندسة المفاصل فقط.",min_unit:"د",
+    demo_10s:"10 ثوان (عرض توضيحي سريع)",demo_60s:"1 دقيقة (اختبار المطور)",
   },
 };
 
-// ── Exercise video URLs (per language) ────────────────────────────────────
-const EXERCISE_VIDEOS = {
-  "English":  "https://www.youtube.com/watch?v=M4pAQhKdOek",
-  "繁體中文":  "https://www.youtube.com/watch?v=RFRggWl1cNk",
-  "Español":  "https://www.youtube.com/watch?v=ILlAgJxoV9M",
-  "日本語":    "https://www.youtube.com/watch?v=8mS-GFpbNsE",
-  "한국어":    "https://www.youtube.com/watch?v=5i7aExKwCOU",
-  "Français":  "https://www.youtube.com/watch?v=J0PFkEPRtX0",
-  "Deutsch":   "https://www.youtube.com/watch?v=U0_cz0_GSRE",
-  "Русский":   "https://www.youtube.com/watch?v=Bj6hD3rCNug",
-  "Português": "https://www.youtube.com/watch?v=IVeGYKOScjQ",
-  "العربية":  "https://www.youtube.com/watch?v=g_tea8ZNk5A",
+// ── Multilingual Break Media Dictionary (videos + fallbacks) ──────────────────
+const breakContent = {
+  "English": {
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Neck_stretch.jpg/640px-Neck_stretch.jpg",
+    title: "Neck & Shoulder Stretches",
+    actions: [
+      "Slow Neck Rotation: Slowly turn your head to the right, hold for 5 seconds, then switch sides.",
+      "Shoulder Shrugs: Slowly raise shoulders to your ears, hold for 3 seconds, then release.",
+      "Chest Opener: Clasp hands behind your back, puff out chest, and gently pull backward."
+    ]
+  },
+  "繁體中文": {
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Neck_stretch.jpg/640px-Neck_stretch.jpg",
+    title: "頸部與肩部舒緩操",
+    actions: [
+      "動作 1：緩慢地將頭向右轉，停留 5 秒，然後換邊。",
+      "動作 2：雙肩緩慢向上聳至耳朵，停留 3 秒後放下。",
+      "動作 3：雙手在身後相扣，挺胸，緩慢向後拉伸。"
+    ]
+  },
+  "Español": {
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Neck_stretch.jpg/640px-Neck_stretch.jpg",
+    title: "Estiramientos de Cuello y Hombros",
+    actions: [
+      "Giro Lento de Cabeza: Gira lentamente la cabeza hacia la derecha, aguanta 5 segundos, luego cambia de lado.",
+      "Encogimiento de Hombros: Eleva lentamente los hombros hacia las orejas, aguanta 3 segundos, luego suelta.",
+      "Abridor de Pecho: Entrelaza las manos detrás de la espalda, sale el pecho hacia adelante, y estira lentamente hacia atrás."
+    ]
+  },
+  "日本語": {
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Neck_stretch.jpg/640px-Neck_stretch.jpg",
+    title: "首および肩のストレッチ",
+    actions: [
+      "ゆっくりした首の回転：ゆっくり首を右に回し、5秒間保ちます。次に反対側を行います。",
+      "肩を上げる：ゆっくり肩を耳まで上げ、3秒間保ってから下ろします。",
+      "チェストオープナー：両手を背中で組み、胸を張り、ゆっくり後ろに引きます。"
+    ]
+  },
+  "한국어": {
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Neck_stretch.jpg/640px-Neck_stretch.jpg",
+    title: "목과 어깨 스트레칭",
+    actions: [
+      "느린 목 회전: 천천히 고개를 오른쪽으로 돌려서 5초간 멈춘 후 반대쪽으로 진행합니다.",
+      "어깨 으쓱: 천천히 어깨를 귀쪽으로 올린 후 3초간 멈춘 뒤 내립니다.",
+      "가슴 스트레칭: 손을 등 뒤에서 맞잡고 가슴을 펴며 천천히 뒤로 당깁니다."
+    ]
+  },
+  "Français": {
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Neck_stretch.jpg/640px-Neck_stretch.jpg",
+    title: "Étirements du Cou et des Épaules",
+    actions: [
+      "Rotation Lente du Cou : Tournez lentement la tête vers la droite, maintenez 5 secondes, puis changez de côté.",
+      "Haussement d'Épaules : Soulevez lentement les épaules vers les oreilles, maintenez 3 secondes, puis relâchez.",
+      "Ouverture de la Poitrine : Entrelacez les mains derrière le dos, bombez la poitrine et tirez lentement vers l'arrière."
+    ]
+  },
+  "Deutsch": {
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Neck_stretch.jpg/640px-Neck_stretch.jpg",
+    title: "Nacken- und Schulterdehnung",
+    actions: [
+      "Langsame Nackendrehung: Drehen Sie den Kopf langsam nach rechts, halten Sie 5 Sekunden an, wechseln Sie dann die Seite.",
+      "Schulterzucken: Heben Sie die Schultern langsam zu den Ohren, halten Sie 3 Sekunden an und senken Sie sie.",
+      "Brustöffner: Verschränken Sie die Hände hinter dem Rücken, strecken Sie die Brust heraus und ziehen Sie langsam nach hinten."
+    ]
+  },
+  "Русский": {
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Neck_stretch.jpg/640px-Neck_stretch.jpg",
+    title: "Растяжка шеи и плеч",
+    actions: [
+      "Медленный поворот шеи: Медленно поворачивайте голову вправо, удерживайте 5 секунд, затем поменяйте сторону.",
+      "Пожимание плечами: Медленно поднимайте плечи к ушам, удерживайте 3 секунды, затем опустите.",
+      "Раскрытие груди: Сцепите руки за спиной, выпятите грудь и медленно потяните назад."
+    ]
+  },
+  "Português": {
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Neck_stretch.jpg/640px-Neck_stretch.jpg",
+    title: "Alongamentos de Pescoço e Ombros",
+    actions: [
+      "Rotação Lenta do Pescoço: Gire lentamente a cabeça para a direita, mantenha por 5 segundos, depois mude de lado.",
+      "Elevação de Ombros: Levante lentamente os ombros até as orelhas, mantenha por 3 segundos e depois solte.",
+      "Abertura do Peito: Entrelaçalços atrás das costas, projete o peito para frente e puxe lentamente para trás."
+    ]
+  },
+  "العربية": {
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Neck_stretch.jpg/640px-Neck_stretch.jpg",
+    title: "تمارين رقبة وكتف",
+    actions: [
+      "دوران بطيء للرقبة: أدر رأسك ببطء إلى اليمين واحبسها لمدة 5 ثوانٍ، ثم غيّر الجانب.",
+      "رفع الكتفين: ارفع كتفيك ببطء نحو أذنيك، احبسهما لمدة 3 ثوانٍ، ثم أفلتهما.",
+      "فتح الصدر: شبّك يديك خلف ظهرك، ارفع صدرك، واسحب ببطء نحو الخلف."
+    ]
+  }
 };
 
 // ── Category palette ───────────────────────────────────────────────────────
@@ -710,7 +835,7 @@ const CAT_COLORS = { Work:"#4A90D9", Health:"#4CAF50", Break:"#F5A623", Urgent:"
 // ── App state ──────────────────────────────────────────────────────────────
 let lang          = "English";
 let t             = T["English"];
-let intervalMins  = 60;
+let intervalSecs  = 3600; // interval in seconds (default 60 min)
 let privacyMode   = true;
 let reminders     = [];           // { name, hour, minute, category, done }
 let firedSet      = new Set();    // which reminder ids fired this session
@@ -722,9 +847,12 @@ let sessionStart  = 0;
 let nextBreakAt   = 0;
 let postureLog    = [];           // { ts, inclination, status: "Good"|"Bad"|"Absent" }
 let neckLoadLog   = [];
-let badStartTs    = null;         // timestamp when last bad streak started
+let badPostureDebounceStart = null;  // when bad posture first detected (feature 1: debounce)
 let lastBadBeep   = 0;
 let reportChart   = null;
+let videoFrame    = null;         // store current video frame for AI HUD (feature 2)
+let isDemoMode    = false;        // Flag to prevent Start button from overwriting demo interval
+let isBreakModalOpen = false;     // Flag to prevent infinite break modal loop at 30 FPS
 
 // ── Utility: vector angle (degrees) ───────────────────────────────────────
 function vecAngleDeg(ax, ay, bx, by) {
@@ -828,19 +956,13 @@ function applyTranslations() {
   setText("btn-modal-close", t.modal_close);
   // Input placeholder
   setAttr("rem-name", "placeholder", t.name_ph);
-  // Slider value unit (re-render with current slider value)
-  const slider = document.getElementById("slider-interval");
-  if (slider) {
-    document.getElementById("lbl-interval-val").textContent =
-      slider.value + " " + (t.min_unit || "min");
-  }
-  // Category options in select
-  const sel = document.getElementById("rem-cat");
-  if (sel) {
-    sel.options[0].text = `💼 ${t.cat_work}`;
-    sel.options[1].text = `💚 ${t.cat_health}`;
-    sel.options[2].text = `☕ ${t.cat_break}`;
-    sel.options[3].text = `🔴 ${t.cat_urgent}`;
+  // Category options in reminders modal select
+  const selCat = document.getElementById("rem-cat");
+  if (selCat) {
+    selCat.options[0].text = `💼 ${t.cat_work}`;
+    selCat.options[1].text = `💚 ${t.cat_health}`;
+    selCat.options[2].text = `☕ ${t.cat_break}`;
+    selCat.options[3].text = `🔴 ${t.cat_urgent}`;
   }
 }
 
@@ -856,13 +978,21 @@ function setAttr(id, attr, value) {
 
 // ── Launcher Start ─────────────────────────────────────────────────────────
 function onStart() {
-  intervalMins = parseInt(document.getElementById("slider-interval").value, 10);
+  // Only update interval from slider if not in demo mode
+  if (!isDemoMode) {
+    const sliderValue = parseInt(document.getElementById("slider-interval").value, 10);
+    // Slider values are in minutes; convert to seconds
+    intervalSecs = sliderValue * 60;
+  }
+  // Reset demo mode flag after starting
+  isDemoMode = false;
+  
   privacyMode  = document.getElementById("chk-privacy").checked;
   postureLog   = [];
   neckLoadLog  = [];
   firedSet     = new Set();
   sessionStart = Date.now();
-  nextBreakAt  = sessionStart + intervalMins * 60 * 1000;
+  nextBreakAt  = sessionStart + intervalSecs * 1000;
   showScreen("detection");
   startMediaPipe();
 }
@@ -888,10 +1018,16 @@ function startMediaPipe() {
     minDetectionConfidence: 0.45,
     minTrackingConfidence: 0.45,
   });
-  poseInstance.onResults(results => onPoseResults(results, canvas, ctx2d));
+  poseInstance.onResults(results => onPoseResults(results, videoEl, canvas, ctx2d));
 
   cameraInst = new Camera(videoEl, {
-    onFrame: async () => { await poseInstance.send({ image: videoEl }); },
+    onFrame: async () => {
+      // Capture current video frame for AI HUD (Feature 2: when privacy mode is OFF)
+      if (!privacyMode) {
+        videoFrame = videoEl;
+      }
+      await poseInstance.send({ image: videoEl });
+    },
     width: 640, height: 480,
   });
   cameraInst.start().catch(err => {
@@ -900,14 +1036,20 @@ function startMediaPipe() {
   });
 }
 
-// ── Pose results handler ───────────────────────────────────────────────────
-function onPoseResults(results, canvas, ctx) {
+// ── Pose results handler (FEATURE 1: Visibility Check & Debounce) ────────────
+function onPoseResults(results, videoEl, canvas, ctx) {
   const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, W, H);
-
   const now = Date.now();
+
+  // FEATURE 2: Enhanced AI HUD - Draw video frame when privacy mode is OFF
+  if (!privacyMode && videoEl && videoEl.readyState === videoEl.HAVE_ENOUGH_DATA) {
+    ctx.drawImage(videoEl, 0, 0, W, H);
+  } else {
+    // Privacy mode: black background only
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
+  }
 
   if (!results.poseLandmarks) {
     postureLog.push({ ts: now, inclination: 180, status: "Absent" });
@@ -922,49 +1064,88 @@ function onPoseResults(results, canvas, ctx) {
   let postureBAD   = false;
   let inclination  = 180;
 
-  const get = i => lm[i] ? { x: lm[i].x * W, y: lm[i].y * H, v: lm[i].visibility } : null;
+  const get = i => lm[i] ? { x: lm[i].x * W, y: lm[i].y * H, v: lm[i].visibility, z: lm[i].z || 0 } : null;
   const ls = get(11), rs = get(12), le = get(7), re = get(8),
         lh = get(23), rh = get(24);
 
-  if (ls && rs && ls.v > 0.4 && rs.v > 0.4) {
+  // FEATURE 1: Visibility Check - Only use landmarks with visibility > 0.65
+  const VISIBILITY_THRESHOLD = 0.65;
+
+  if (ls && rs && ls.v > VISIBILITY_THRESHOLD && rs.v > VISIBILITY_THRESHOLD) {
     // Condition A — shoulder Y asymmetry
     if (Math.abs(ls.y - rs.y) / H > 0.08) postureBAD = true;
 
     const shW = Math.abs(ls.x - rs.x);
 
-    // Condition B — ear forward relative to shoulder
+    // Condition B — ear forward relative to shoulder (with visibility check)
     for (const [ear, shX, shY] of [[le, ls.x, ls.y], [re, rs.x, rs.y]]) {
-      if (ear && ear.v > 0.3) {
+      if (ear && ear.v > VISIBILITY_THRESHOLD) {
         if (shW > 1 && Math.abs(ear.x - shX) / shW > 0.35) postureBAD = true;
         if ((ear.y - shY) / H > 0.06) postureBAD = true;
       }
     }
 
-    // Condition C — inclination angle
+    // Condition C — inclination angle (with visibility check)
     const angles = [];
     for (const [e, s, h] of [[le, ls, get(23)], [re, rs, get(24)]]) {
-      if (e && s && h && e.v > 0.3 && h.v > 0.3) {
+      if (e && s && h && e.v > VISIBILITY_THRESHOLD && h.v > VISIBILITY_THRESHOLD) {
         const ang = vecAngleDeg(e.x-s.x, e.y-s.y, h.x-s.x, h.y-s.y);
         angles.push(ang);
         if (ang < 145) postureBAD = true;
       }
     }
     if (angles.length) inclination = Math.min(...angles);
+
+    // Condition D — Z-axis depth check: head protruding forward (hunched/turtle neck)
+    // Calculate average Z-axis for ears and shoulders
+    if (le && re && ls && rs && le.v > VISIBILITY_THRESHOLD && re.v > VISIBILITY_THRESHOLD) {
+      const earZ = (le.z + re.z) / 2;  // landmarks 7 and 8 (ears)
+      const shZ = (ls.z + rs.z) / 2;   // landmarks 11 and 12 (shoulders)
+      // If head is significantly closer to camera than shoulders, mark as bad
+      if ((shZ - earZ) > 0.08) {
+        postureBAD = true;
+        // "Head Too Forward!" or "Leaning Too Close!" will be shown via visual feedback
+      }
+    }
   }
 
   const neckLoad = calcNeckLoad(inclination);
   neckLoadLog.push(neckLoad);
-  const status = postureBAD ? "Bad" : "Good";
+
+  // FEATURE 1: Debounce Buffer - Only register "Bad" after 3 seconds of continuous bad posture
+  const DEBOUNCE_THRESHOLD_MS = 3000; // 3 seconds
+  let status = "Good";
+  
+  if (postureBAD) {
+    if (badPostureDebounceStart === null) {
+      badPostureDebounceStart = now;
+    }
+    // Only mark as "Bad" if we've been in bad posture for >= 3 seconds
+    if (now - badPostureDebounceStart >= DEBOUNCE_THRESHOLD_MS) {
+      status = "Bad";
+    } else {
+      // During debounce window, still show as "Good" to prevent false positives
+      status = "Good";
+    }
+  } else {
+    // Good posture detected - reset debounce timer
+    badPostureDebounceStart = null;
+  }
+
   postureLog.push({ ts: now, inclination, status });
 
-  // ── Draw stickman ───────────────────────────────────────────────────────
-  drawStickman(ctx, lm, W, H, postureBAD);
+  // ── Draw stickman + AI HUD ──────────────────────────────────────────────
+  drawStickman(ctx, lm, W, H, status === "Bad");
+
+  // FEATURE 2: AI Vision HUD - Overlay when privacy mode is OFF
+  if (!privacyMode) {
+    drawAIHUD(ctx, lm, W, H, le, ls, re, rs, inclination, neckLoad);
+  }
 
   // ── Bad posture overlay & audio ─────────────────────────────────────────
   const badOverlay = document.getElementById("bad-overlay");
-  if (postureBAD) {
+  if (status === "Bad") {
     badOverlay.classList.add("visible", "pulsing");
-    if (badStartTs === null) badStartTs = now;
     // Beep every 30 s of continuous bad posture
     if (now - lastBadBeep > 30000) {
       playBeep(440, 0.4);
@@ -972,12 +1153,53 @@ function onPoseResults(results, canvas, ctx) {
     }
   } else {
     badOverlay.classList.remove("visible", "pulsing");
-    badStartTs   = null;
     lastBadBeep  = 0;
   }
 
-  updateHUD(status === "Bad" ? t.bad : t.good, inclination, neckLoad, postureBAD);
+  updateHUD(status === "Bad" ? t.bad : t.good, inclination, neckLoad, status === "Bad");
   checkTimers(now);
+}
+
+// ── AI HUD Drawing (FEATURE 2: Enhanced AI Vision with Angle Line & Neck Load) ──
+function drawAIHUD(ctx, lm, W, H, le, ls, re, rs, inclination, neckLoad) {
+  if (!le || !ls || !re || !rs) return;
+
+  // ── Draw dashed line connecting Ear and Shoulder (angle measurement visualization) ──
+  ctx.strokeStyle = "#00FF00"; // bright green for HUD
+  ctx.setLineDash([8, 4]); // dashed pattern
+  ctx.lineWidth = 2.5;
+
+  // Left ear-shoulder line
+  if (le.v > 0.65 && ls.v > 0.65) {
+    ctx.beginPath();
+    ctx.moveTo(le.x, le.y);
+    ctx.lineTo(ls.x, ls.y);
+    ctx.stroke();
+  }
+
+  // Right ear-shoulder line
+  if (re.v > 0.65 && rs.v > 0.65) {
+    ctx.beginPath();
+    ctx.moveTo(re.x, re.y);
+    ctx.lineTo(rs.x, rs.y);
+    ctx.stroke();
+  }
+
+  ctx.setLineDash([]); // reset line dash
+
+  // ── Draw "Neck Load: X.X kg" floating text near the head ──
+  const headX = (le.x + re.x) / 2;
+  const headY = Math.min(le.y, re.y) - 30;
+
+  ctx.font = "bold 16px 'Segoe UI', Arial, sans-serif";
+  ctx.fillStyle = "#00FF00";
+  ctx.textAlign = "center";
+  ctx.fillText(`Neck Load: ${neckLoad.toFixed(1)} kg`, headX, headY);
+
+  // Optional: Angle visualization text below
+  ctx.font = "14px 'Segoe UI', Arial, sans-serif";
+  ctx.fillStyle = "#00FFFF";
+  ctx.fillText(`Angle: ${inclination.toFixed(0)}°`, headX, headY + 22);
 }
 
 // ── Stickman drawing ───────────────────────────────────────────────────────
@@ -1043,15 +1265,16 @@ function updateHUD(statusText, inclination, neckLoad, bad) {
 
 // ── Timers: break & daily reminders ───────────────────────────────────────
 function checkTimers(now) {
-  // Break reminder
-  if (now >= nextBreakAt) {
-    const url = EXERCISE_VIDEOS[lang] || EXERCISE_VIDEOS["English"];
-    window.open(url, "_blank");
+  // Break reminder (FEATURE 3: Support for demo mode with seconds)
+  // CRITICAL: Only trigger if modal is not already open (prevents 30 FPS loop crash)
+  if (now >= nextBreakAt && !isBreakModalOpen) {
+    isBreakModalOpen = true;  // Set flag immediately to prevent re-triggering
+    showBreakReminder(); // Show break modal with multilingual media
     const bb = document.getElementById("break-banner");
     bb.textContent = t.break_msg;
     bb.style.display = "block";
     setTimeout(() => { bb.style.display = "none"; }, 9000);
-    nextBreakAt = now + intervalMins * 60 * 1000;
+    nextBreakAt = now + intervalSecs * 1000;  // Use intervalSecs for both demo & regular modes
     playBeep(523, 0.5);
   }
 
@@ -1242,9 +1465,102 @@ function escHtml(s) {
   return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 
+// ── Break Reminder Modal Functions (Multilingual Media) ─────────────────────
+function showBreakReminder() {
+  // Get content for current language, fallback to English
+  const content = breakContent[lang] || breakContent["English"];
+  
+  // Populate image container
+  const imageContainer = document.getElementById("break-media-container");
+  imageContainer.innerHTML = `
+    <img src="${content.imageUrl}" 
+         class="w-full max-h-64 object-contain rounded mb-4" 
+         alt="Stretch Guide" />
+  `;
+  
+  // Populate stretch content (title + actions list)
+  const contentContainer = document.getElementById("break-stretch-content");
+  const actionsList = content.actions
+    .map(action => `<li class="text-sm text-[var(--muted)] leading-relaxed mb-2">• ${action}</li>`)
+    .join("");
+  
+  contentContainer.innerHTML = `
+    <h3 class="text-base font-bold text-[var(--accent)] mb-3">${content.title}</h3>
+    <ul class="list-none p-0 m-0">
+      ${actionsList}
+    </ul>
+    <p class="text-xs text-[var(--muted)] mt-3 italic">Take 2-3 minutes to perform these stretches and rest your eyes.</p>
+  `;
+  
+  // Show modal
+  document.getElementById("modal-break-reminder").classList.remove("hidden");
+  playBeep(440, 0.3); // Gentle beep
+}
+
+function closeBreakReminder() {
+  document.getElementById("modal-break-reminder").classList.add("hidden");
+  isBreakModalOpen = false;  // Reset flag to allow next break reminder
+}
+
+function startBreakTimer() {
+  closeBreakReminder();
+  isBreakModalOpen = false;  // Reset flag explicitly
+  // Timer for 2-minute rest (120 seconds)
+  const restDurationMs = 120 * 1000;
+  const restStartTime = Date.now();
+  
+  // Optional: Could add visual countdown here
+  // For now, just close modal and let user know visually
+  const bb = document.getElementById("break-banner");
+  bb.textContent = "⏱ 2-minute rest started. Get back when ready!";
+  bb.style.display = "block";
+  setTimeout(() => { bb.style.display = "none"; }, 5000);
+}
+
+// ── Interval Display & Developer Panel Controls ──────────────────────────
+function updateIntervalDisplay(value) {
+  document.getElementById("lbl-interval-val").textContent = value + " " + (t.min_unit || "min");
+  // Reset demo mode if user adjusts slider
+  isDemoMode = false;
+}
+
+function setDemoInterval(seconds, label) {
+  intervalSecs = seconds;
+  isDemoMode = true;  // Prevent Start button from overwriting this
+  alert(`⚡ Timer set to ${label}!`);
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.shiftKey && (event.code === "KeyD" || event.key === "D" || event.key === "d")) {
+    const devPanel = document.getElementById("dev-panel");
+    if (devPanel) {
+      devPanel.classList.toggle("hidden");
+      // Optional: add a small visual feedback or console log here instead of annoying alert
+      console.log("Developer Panel Toggled!"); 
+    } else {
+      alert("CRITICAL ERROR: The #dev-panel HTML is STILL MISSING from the document! Please check the HTML file.");
+    }
+  }
+});
+
 // ── Boot ───────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   applyTranslations();
+  
+  // Initialize demo buttons
+  const btnDemo10s = document.getElementById("btn-demo-10s");
+  const btnDemo60s = document.getElementById("btn-demo-60s");
+  
+  if (btnDemo10s) {
+    btnDemo10s.addEventListener("click", () => {
+      setDemoInterval(10, "10 seconds");
+    });
+  }
+  if (btnDemo60s) {
+    btnDemo60s.addEventListener("click", () => {
+      setDemoInterval(60, "1 minute");
+    });
+  }
 });
 </script>
 
