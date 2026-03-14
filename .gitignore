@@ -1,0 +1,47 @@
+# Electron
+node_modules/
+dist/
+build/
+*.exe
+*.AppImage
+*.dmg
+*.deb
+*.zip
+*.tar.gz
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+*.log
+
+# IDE
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace
+
+# Python (if you still have Python scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv
+venv/
+env/
+
+# General
+.env
+.env.local
+*.bak
+*.tmp
